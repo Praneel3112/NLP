@@ -1,0 +1,27 @@
+project:
+  name: transliteration-error-correction
+  team_id: 12
+  target_languages:
+    - Hindi
+    - Kannada
+    - Tamil
+    - Bengali
+
+preprocessing:
+  vowels_drop_rate: 0.25
+  char_repeat_rate: 0.15
+
+models:
+  rnn_hidden_dim: 256
+  rnn_layers: 3
+  transformer_name: character-level-encoder-decoder
+  batch_size: 16
+  lr: 0.00005
+
+evaluation:
+  metrics:
+    - CER
+    - WER
+    - BLEU
+    - EM
+    - Cosine_Sim

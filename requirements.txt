@@ -1,0 +1,4 @@
+editdistance
+jiwer
+nltk
+sentence-transformers
