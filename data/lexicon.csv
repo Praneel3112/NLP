@@ -1,0 +1,280 @@
+word,language,meaning
+namaste,Hindi,hello
+aap,Hindi,you (polite)
+kaise,Hindi,how
+ho,Hindi,are
+nanna,Kannada,my
+hesaru,Kannada,name
+ravi,Kannada,Ravi (name)
+en,Tamil,my
+peyar,Tamil,name
+meena,Tamil,Meena (name)
+amar,Bengali,my
+naam,Bengali,name
+suman,Bengali,Suman (name)
+main,Hindi,I
+mein,Hindi,in
+hum,Hindi,we
+tum,Hindi,you
+tu,Hindi,you (informal)
+mera,Hindi,my
+meri,Hindi,my (fem.)
+mere,Hindi,my (pl.)
+tera,Hindi,your
+teri,Hindi,your (fem.)
+tere,Hindi,your (pl.)
+uska,Hindi,his/her
+uski,Hindi,his/her (fem.)
+unka,Hindi,their
+apna,Hindi,own
+mujhe,Hindi,to me
+tujhe,Hindi,to you
+hai,Hindi,is
+hain,Hindi,are
+tha,Hindi,was
+thi,Hindi,was (fem.)
+hoon,Hindi,am
+hoga,Hindi,will be
+kya,Hindi,what
+kyun,Hindi,why
+kab,Hindi,when
+kahan,Hindi,where
+kaun,Hindi,who
+kitna,Hindi,how much
+kaisa,Hindi,how (masc.)
+kaisi,Hindi,how (fem.)
+yeh,Hindi,this
+woh,Hindi,that
+yahan,Hindi,here
+wahan,Hindi,there
+abhi,Hindi,now
+aaj,Hindi,today
+kal,Hindi,tomorrow/yesterday
+phir,Hindi,again
+bhi,Hindi,also
+aur,Hindi,and
+lekin,Hindi,but
+nahi,Hindi,no
+haan,Hindi,yes
+accha,Hindi,good/okay
+theek,Hindi,fine
+bahut,Hindi,very
+thoda,Hindi,a little
+sab,Hindi,all
+kuch,Hindi,some
+koi,Hindi,someone
+bas,Hindi,enough
+sirf,Hindi,only
+jaldi,Hindi,quickly
+ghar,Hindi,home
+khana,Hindi,food
+paani,Hindi,water
+dost,Hindi,friend
+yaar,Hindi,friend/buddy
+bhai,Hindi,brother
+behen,Hindi,sister
+maa,Hindi,mother
+papa,Hindi,father
+beta,Hindi,son
+log,Hindi,people
+kaam,Hindi,work
+din,Hindi,day
+raat,Hindi,night
+subah,Hindi,morning
+shaam,Hindi,evening
+waqt,Hindi,time
+baat,Hindi,talk/matter
+dil,Hindi,heart
+pyaar,Hindi,love
+khush,Hindi,happy
+khushi,Hindi,happiness
+dukh,Hindi,sorrow
+dukhi,Hindi,sad
+gussa,Hindi,anger
+darr,Hindi,fear
+udaas,Hindi,sad
+bura,Hindi,bad
+sundar,Hindi,beautiful
+naya,Hindi,new
+bada,Hindi,big
+chhota,Hindi,small
+raha,Hindi,-ing (masc.)
+rahi,Hindi,-ing (fem.)
+rahe,Hindi,-ing (pl.)
+gaya,Hindi,went
+gayi,Hindi,went (fem.)
+aaya,Hindi,came
+aa,Hindi,come
+ja,Hindi,go
+kar,Hindi,do
+karo,Hindi,do (imperative)
+karna,Hindi,to do
+chalo,Hindi,let's go
+dekho,Hindi,look
+suno,Hindi,listen
+bolo,Hindi,speak
+batao,Hindi,tell
+pata,Hindi,known
+samajh,Hindi,understand
+zaroor,Hindi,surely
+shukriya,Hindi,thanks
+dhanyavaad,Hindi,thank you
+maaf,Hindi,sorry/forgive
+mast,Hindi,great
+badhiya,Hindi,excellent
+sahi,Hindi,right
+galat,Hindi,wrong
+matlab,Hindi,meaning
+kyunki,Hindi,because
+agar,Hindi,if
+toh,Hindi,then
+sach,Hindi,truth
+mil,Hindi,meet
+naanu,Kannada,I
+neenu,Kannada,you
+avanu,Kannada,he
+avalu,Kannada,she
+avaru,Kannada,they
+naavu,Kannada,we
+neevu,Kannada,you (polite)
+nimma,Kannada,your
+namma,Kannada,our
+ninna,Kannada,your (informal)
+enu,Kannada,what
+yaake,Kannada,why
+elli,Kannada,where
+yaavaga,Kannada,when
+hege,Kannada,how
+hegiddiya,Kannada,how are you
+chennagide,Kannada,it is good
+chennagiddini,Kannada,I am fine
+oota,Kannada,meal
+neeru,Kannada,water
+mane,Kannada,house
+hogu,Kannada,go
+banni,Kannada,come (polite)
+baa,Kannada,come
+maadu,Kannada,do
+illa,Kannada,no
+ide,Kannada,is there
+beku,Kannada,want
+beda,Kannada,don't want
+houdu,Kannada,yes
+swalpa,Kannada,a little
+tumba,Kannada,very
+guru,Kannada,buddy
+amma,Kannada/Tamil,mother
+appa,Kannada/Tamil,father
+akka,Kannada/Tamil,elder sister
+anna,Kannada/Tamil,elder brother
+santosha,Kannada,happiness
+dukha,Kannada,sorrow
+kopa,Kannada,anger
+bhaya,Kannada,fear
+preethi,Kannada,love
+ishta,Kannada,liking
+kushi,Kannada,joy
+aagide,Kannada,has happened
+aagtide,Kannada,is happening
+aaytu,Kannada,happened
+gottilla,Kannada,don't know
+gottu,Kannada,know
+nodu,Kannada,look
+helu,Kannada,tell
+kelsa,Kannada,work
+shaale,Kannada,school
+ooru,Kannada,town
+bega,Kannada,quickly
+naale,Kannada,tomorrow
+ivattu,Kannada,today
+ninne,Kannada,yesterday
+naan,Tamil,I
+nee,Tamil,you
+avan,Tamil,he
+aval,Tamil,she
+naanga,Tamil,we
+neenga,Tamil,you (polite)
+enna,Tamil,what
+eppadi,Tamil,how
+enga,Tamil,where
+eppo,Tamil,when
+yaaru,Tamil,who
+vanakkam,Tamil,hello
+nandri,Tamil,thank you
+romba,Tamil,very
+konjam,Tamil,a little
+nalla,Tamil,good
+irukku,Tamil,is there
+irukken,Tamil,I am
+illai,Tamil,no
+aamaa,Tamil,yes
+seri,Tamil,okay
+vaa,Tamil,come
+po,Tamil,go
+saapadu,Tamil,food
+thanni,Tamil,water
+veedu,Tamil,house
+thambi,Tamil,younger brother
+nanba,Tamil,friend
+machan,Tamil,buddy
+semma,Tamil,awesome
+kadhal,Tamil,love
+anbu,Tamil,affection
+kovam,Tamil,anger
+bayam,Tamil,fear
+santhosham,Tamil,happiness
+sogam,Tamil,sorrow
+kashtam,Tamil,difficulty
+paaru,Tamil,look
+sollu,Tamil,tell
+pannu,Tamil,do
+inniku,Tamil,today
+naalaiku,Tamil,tomorrow
+ippo,Tamil,now
+theriyum,Tamil,know
+theriyadhu,Tamil,don't know
+ami,Bengali,I
+tumi,Bengali,you
+apni,Bengali,you (polite)
+amra,Bengali,we
+tomar,Bengali,your
+tomake,Bengali,to you
+ki,Bengali,what
+keno,Bengali,why
+kothay,Bengali,where
+kobe,Bengali,when
+kemon,Bengali,how
+acho,Bengali,are (you)
+achi,Bengali,am
+bhalo,Bengali,good
+kharap,Bengali,bad
+khub,Bengali,very
+ektu,Bengali,a little
+onek,Bengali,a lot
+thik,Bengali,right/okay
+nei,Bengali,not there
+dhonnobad,Bengali,thank you
+bondhu,Bengali,friend
+baba,Bengali,father
+dada,Bengali,elder brother
+didi,Bengali,elder sister
+jol,Bengali,water
+khabar,Bengali,food
+bari,Bengali,house
+kaaj,Bengali,work
+bhalobasha,Bengali,love
+bhalobashi,Bengali,(I) love
+raag,Bengali,anger
+bhoy,Bengali,fear
+dukkho,Bengali,sorrow
+anondo,Bengali,joy
+darun,Bengali,wonderful
+shotti,Bengali,truly
+jabo,Bengali,will go
+jacchi,Bengali,am going
+korchi,Bengali,am doing
+korbo,Bengali,will do
+shono,Bengali,listen
+eso,Bengali,come
+khao,Bengali,eat
+ghum,Bengali,sleep

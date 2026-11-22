@@ -55,14 +55,17 @@ For frontend development with hot reload, keep `python server.py` running and
 run `npm run dev` inside `web/`; Vite proxies `/api` to the Python server.
 
 The emotion classifier (word + character TF-IDF with Logistic Regression,
-trained on `data/emotion_dataset.csv`) trains first, in about two seconds. Phase 2 (GRU) and Phase 3 (Transformer) models train once in the background on
-startup; the page shows which model is training and when both are ready. The web
-backend trains each model for 20 epochs on the 13-word sample lexicon and 53
-generated noisy-to-clean pairs from the project demo. It uses one CPU thread to
-keep the small training workload responsive. The original CLI experiment in
-`main.py` continues to use its 100-epoch settings. The web models are retrained
-each time the server starts because the project does not include saved model
-checkpoints.
+trained on `data/emotion_dataset.csv`) trains first, in about two seconds.
+
+The correction lexicon is `data/lexicon.csv`: 279 common Romanized Hindi,
+Kannada, Tamil and Bengali words with their language and meaning (the first 13
+are the original CIE3 sample words). Phase 2 (GRU) and Phase 3 (Transformer) are
+trained for 100 epochs on 1,117 noisy-to-clean pairs generated from it, on one
+CPU thread. Training takes about 15 minutes, so the trained models are saved in
+`models/` and reloaded in seconds on later starts. Each checkpoint stores a
+fingerprint of its training data and settings; if you edit the lexicon, the
+models retrain automatically on the next start. `main.py` uses the same saved
+models.
 
 The models run on CPU and need PyTorch, which is installed as a dependency of
 `sentence-transformers` in `requirements.txt`. Startup may take a while. If
@@ -102,7 +105,8 @@ appropriate production protections.
   separation).
 - `src/emotion/` holds the emotion lexicons, rule scorer, trained classifier and
   hybrid detector.
-- `src/correction/pipeline.py` shares the sample lexicon and deterministic
+- `src/correction/model_store.py` trains Phases 2/3 once and reloads them from `models/`.
+- `src/correction/pipeline.py` loads `data/lexicon.csv` and builds the deterministic
   training-pair generation between the CLI and web backend.
 
 The assignment brief was not present in the workspace; the interface follows

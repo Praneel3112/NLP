@@ -166,7 +166,9 @@ Run the tests with `python -m unittest discover -s tests -v`.
 - ✅ Emotion detection: 418 labelled sentences, rule engine, ML model, hybrid
 - ✅ Connected to `service.py`, `server.py` and `main.py` (new Step 5)
 - ✅ New React + Cult UI frontend in `web/`
-- ✅ 20 tests passing (4 original + 16 new)
+- ✅ **Code-mixed correction:** the language identifier now sends English words around Phases 1–3. Before, "how are you" became "ho amar ho".
+- ✅ **Bigger lexicon:** 13 → 279 common words (Hindi, Kannada, Tamil, Bengali) in `data/lexicon.csv`, each with its language and meaning. The GRU and Transformer train once (100 epochs, about 15 minutes) on 1,117 examples and are saved in `models/`, so later starts take seconds.
+- ✅ 28 tests passing (4 original + 24 new)
 
 **Results on 84 unseen test sentences:**
 
@@ -179,6 +181,9 @@ Run the tests with `python -m unittest discover -s tests -v`.
 ---
 
 ## 9. Viva talking points 🎤
+
+- **Why split by language before correcting?** Code-mixed text has English words that aren't spelling mistakes. A spell-corrector that only knows Indic words will "fix" them into Indic words. Language ID decides which words the Indic models should touch.
+- **Why save the trained models?** Training on 1,117 examples for 100 epochs takes about 15 minutes on a CPU. Each saved model stores a fingerprint (hash) of its training data and settings, so editing the lexicon automatically triggers retraining. The saved models can never silently go stale.
 
 - **Be honest about the rule-engine score:** the same people wrote the dictionaries and the dataset, so rules-only accuracy is probably optimistic. The ML model's 71–75% is the fairer estimate for text unlike our examples. The hybrid takes the best of both.
 

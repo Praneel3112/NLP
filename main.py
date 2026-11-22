@@ -2,9 +2,8 @@ from src.preprocessing.cleaner import TextCleaner
 from src.preprocessing.noise_generator import NoiseGenerator
 from src.lang_id.detector import LanguageIdentifier
 from src.detection.edit_distance import EditDistanceDetector
-from src.correction.rnn_baseline import Seq2SeqRNN
-from src.correction.transformer_models import TransformerCorrector
-from src.correction.pipeline import LEXICON, build_training_pairs
+from src.correction.model_store import load_or_train
+from src.correction.pipeline import LEXICON
 from src.evaluation.metrics import EvaluationSuite
 from src.emotion.detector import EmotionDetector
 from src.preprocessing.slang_normalizer import SlangNormalizer
@@ -93,20 +92,14 @@ def main():
         phase1_guided_inputs.append(" ".join(guided_words))
 
     print("  PHASE 2 - Trainable character-level GRU Seq2Seq")
-    rnn_training_sources, rnn_training_targets = build_training_pairs()
-    generated_pair_count = len(rnn_training_sources) - 1
-    rnn_model = Seq2SeqRNN(device="cpu", lexicon=lexicon)
-    training_loss = rnn_model.train_on_pairs(
-        rnn_training_sources,
-        rnn_training_targets,
-        epochs=100,
-        learning_rate=1e-3,
-        teacher_forcing_ratio=1.0,
-    )
+    # Same models as the web app: trained once (100 epochs) and reloaded from models/.
+    models = load_or_train(100, on_stage=lambda stage: print(f"    {stage}"))
+    rnn_model = models["gru"]
+    transformer_model = models["transformer"]
+    source_note = "loaded from models/" if models["loaded_from_disk"] else "trained now and saved to models/"
     print(
-        f"    Trained on {len(rnn_training_sources)} pairs "
-        f"({generated_pair_count} generated + explicit 'ap' -> 'aap') "
-        f"for 100 epochs (final loss: {training_loss:.4f})."
+        f"    {len(LEXICON)}-word lexicon, {models['training_examples']} noisy-to-clean pairs, "
+        f"100 epochs ({source_note}); final loss: {models['gru_loss']:.4f}."
     )
     rnn_outputs = []
     phase2_steps = []
@@ -122,22 +115,7 @@ def main():
         )
 
     print("  PHASE 3 - Trainable character-level Transformer with lexicon safeguard")
-    transformer_model = TransformerCorrector(
-        device="cpu",
-        lexicon=lexicon,
-    )
-    transformer_loss = transformer_model.train_on_pairs(
-        rnn_training_sources,
-        rnn_training_targets,
-        epochs=100,
-        learning_rate=1e-3,
-        batch_size=16,
-    )
-    print(
-        f"    Trained on {len(rnn_training_sources)} pairs "
-        f"({generated_pair_count} generated + explicit 'ap' -> 'aap') "
-        f"for 100 epochs (final loss: {transformer_loss:.4f})."
-    )
+    print(f"    Final loss: {models['transformer_loss']:.4f}.")
     transformer_outputs = []
     phase3_steps = []
     for sentence in phase1_guided_inputs:

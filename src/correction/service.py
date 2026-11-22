@@ -8,7 +8,8 @@ from typing import Any
 from src.detection import levenshtein as editdistance
 import torch
 
-from src.correction.pipeline import LEXICON, build_training_pairs
+from src.correction.model_store import load_or_train
+from src.correction.pipeline import LEXICON
 from src.correction.rnn_baseline import Seq2SeqRNN
 from src.correction.transformer_models import TransformerCorrector
 from src.detection.edit_distance import EditDistanceDetector
@@ -16,7 +17,7 @@ from src.emotion.detector import EmotionDetector
 from src.lang_id.detector import LanguageIdentifier
 from src.preprocessing.slang_normalizer import SlangNormalizer
 
-TRAINING_EPOCHS = 20
+TRAINING_EPOCHS = 100
 _EDGE_PUNCTUATION = re.compile(r"^\W+|\W+$")
 _LONG_REPEAT = re.compile(r"(.)\1{2,}")
 
@@ -36,6 +37,8 @@ class CorrectionService:
             "phase3_loss": None,
             "emotion_accuracy": None,
             "emotion_macro_f1": None,
+            "lexicon_size": len(LEXICON),
+            "models_loaded_from_disk": None,
         }
         self._edit_detector = EditDistanceDetector(list(LEXICON))
         self._lexicon = {word.casefold() for word in LEXICON}
@@ -58,30 +61,19 @@ class CorrectionService:
                 emotion_macro_f1=emotion_metrics["comparison"]["hybrid"]["macro_f1"],
             )
 
-            sources, targets = build_training_pairs()
+            self._update_state(stage="Loading saved Phase 2/3 models")
+            models = load_or_train(
+                TRAINING_EPOCHS,
+                on_stage=lambda stage: self._update_state(stage=stage),
+            )
+            rnn = models["gru"]
+            transformer = models["transformer"]
+            phase2_loss = models["gru_loss"]
+            phase3_loss = models["transformer_loss"]
             self._update_state(
-                stage=f"Training Phase 2 · character-level GRU ({TRAINING_EPOCHS} epochs)",
-                training_examples=len(sources),
-            )
-            rnn = Seq2SeqRNN(device="cpu", lexicon=list(LEXICON))
-            phase2_loss = rnn.train_on_pairs(
-                sources,
-                targets,
-                epochs=TRAINING_EPOCHS,
-                learning_rate=1e-3,
-                teacher_forcing_ratio=1.0,
-            )
-
-            self._update_state(
-                stage=f"Training Phase 3 · character Transformer ({TRAINING_EPOCHS} epochs)"
-            )
-            transformer = TransformerCorrector(device="cpu", lexicon=list(LEXICON))
-            phase3_loss = transformer.train_on_pairs(
-                sources,
-                targets,
-                epochs=TRAINING_EPOCHS,
-                learning_rate=1e-3,
-                batch_size=16,
+                training_examples=models["training_examples"],
+                lexicon_size=len(LEXICON),
+                models_loaded_from_disk=models["loaded_from_disk"],
             )
 
             self._rnn = rnn

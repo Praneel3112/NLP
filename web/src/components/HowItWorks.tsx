@@ -5,8 +5,12 @@ import { cn } from "@/lib/utils"
 
 const STAGES = [
   { step: "00", title: "Slang normalizer", text: "Expands short forms (bht → bahut, plz → please) and separates emoji." },
-  { step: "01", title: "Edit distance", text: "Looks words up in the lexicon and fixes close misspellings." },
-  { step: "02", title: "Character GRU", text: "A seq2seq RNN trained on startup corrects words letter by letter." },
+  {
+    step: "01",
+    title: "Edit distance",
+    text: "English words are skipped by language ID; Indic words are matched against a 279-word lexicon.",
+  },
+  { step: "02", title: "Character GRU", text: "A seq2seq RNN trained on 1,117 noisy-to-clean pairs corrects words letter by letter." },
   { step: "03", title: "Character Transformer", text: "Corrects the whole sentence, with a lexicon safeguard." },
 ]
 

@@ -79,6 +79,7 @@ class TransformerCorrector:
     ) -> None:
         self.device = torch.device(device)
         self.lexicon = [word.lower() for word in lexicon or []]
+        self._lexicon_set = set(self.lexicon)
         self.fallback_corrector = (
             EditDistanceDetector(self.lexicon) if self.lexicon else None
         )
@@ -242,9 +243,14 @@ class TransformerCorrector:
         output_words: list[str] = []
         used_fallback = False
         for word in sentence.split():
+            if word.lower() in self._lexicon_set:
+                # Already a correct lexicon word: never rewrite it into a different one.
+                raw_words.append(word)
+                output_words.append(word)
+                continue
             candidate = self._predict_word(word)
             raw_words.append(candidate)
-            if self.fallback_corrector is not None and candidate not in self.lexicon:
+            if self.fallback_corrector is not None and candidate not in self._lexicon_set:
                 corrected = self.fallback_corrector.process_sentence(word)[0]
                 output_words.append(corrected)
                 used_fallback = True
