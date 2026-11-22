@@ -94,7 +94,7 @@ We rebuild the page in **React + Tailwind + Cult UI components**, with animated,
    - **Correction:** Phase 1, 2 and 3 result cards, the final result with a typing animation and a copy button, and a word-by-word explanation.
 5. **How it works:** pipeline cards for Phase 0 → 1 → 2 → 3, the emotion branch and the model's accuracy and F1 score.
 
-Cult UI components we plan to use: Hero Dithering, Dynamic Island, Halo Badge, Texture Card, Bg Animate Button, Direction Aware Tabs, Rolling Number, Halo Progress, Text Animate, Copy Button and Expandable Card.
+Cult UI components we plan to use: Hero Dithering, Dynamic Island, Halo Badge, Texture Card, Bg Animate Button, Direction Aware Tabs, Rolling Number, Halo Progress, Text Animate and Copy Button. Expandable Card was dropped: it is built for fixed-size cards, so the word-by-word list uses a simple fold-out section instead.
 
 ---
 
@@ -128,8 +128,8 @@ The old `index.html`, `styles.css` and `app.js` stay as a backup. The server use
 ## 6. How to run (after the upgrade)
 
 ```powershell
-# 1. Python setup (once)
-python -m venv .venv
+# 1. Python setup (once) - use Python 3.12
+py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
 
@@ -159,7 +159,28 @@ Run the tests with `python -m unittest discover -s tests -v`.
 
 ---
 
-## 8. Viva talking points 🎤
+## 8. Progress (updated 22 Nov 2026)
+
+- ✅ Python environment rebuilt on **Python 3.12**. Python 3.15 was blocked by Windows Smart App Control (NumPy), and `editdistance` has no 3.15 build. The code now falls back to `rapidfuzz` if `editdistance` is missing.
+- ✅ Phase 0 slang normalizer
+- ✅ Emotion detection: 418 labelled sentences, rule engine, ML model, hybrid
+- ✅ Connected to `service.py`, `server.py` and `main.py` (new Step 5)
+- ✅ New React + Cult UI frontend in `web/`
+- ✅ 20 tests passing (4 original + 16 new)
+
+**Results on 84 unseen test sentences:**
+
+| Approach | Accuracy | Macro-F1 |
+|---|---|---|
+| Rule engine only | 92.9% | 0.93 |
+| ML model only | 71.4% (75.1% with 5-fold cross-validation) | 0.72 |
+| **Hybrid (ours)** | **94.0%** | **0.94** |
+
+---
+
+## 9. Viva talking points 🎤
+
+- **Be honest about the rule-engine score:** the same people wrote the dictionaries and the dataset, so rules-only accuracy is probably optimistic. The ML model's 71–75% is the fairer estimate for text unlike our examples. The hybrid takes the best of both.
 
 - **Why hybrid?** Rules are explainable and handle negation. The ML model generalises to new text. Combining them gets the strengths of both.
 - **Why TF-IDF + Logistic Regression and not a big Transformer?** Our dataset is small and code-mixed. Pretrained English emotion models don't understand Hinglish. LR trains in about 1 second, works offline and its results are easy to interpret.
