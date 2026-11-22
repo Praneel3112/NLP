@@ -1,5 +1,6 @@
 """Train and serve the project's sample transliteration correction models."""
 
+import re
 import threading
 import traceback
 from typing import Any
@@ -12,9 +13,12 @@ from src.correction.rnn_baseline import Seq2SeqRNN
 from src.correction.transformer_models import TransformerCorrector
 from src.detection.edit_distance import EditDistanceDetector
 from src.emotion.detector import EmotionDetector
+from src.lang_id.detector import LanguageIdentifier
 from src.preprocessing.slang_normalizer import SlangNormalizer
 
 TRAINING_EPOCHS = 20
+_EDGE_PUNCTUATION = re.compile(r"^\W+|\W+$")
+_LONG_REPEAT = re.compile(r"(.)\1{2,}")
 
 
 class CorrectionService:
@@ -34,6 +38,8 @@ class CorrectionService:
             "emotion_macro_f1": None,
         }
         self._edit_detector = EditDistanceDetector(list(LEXICON))
+        self._lexicon = {word.casefold() for word in LEXICON}
+        self._language_id = LanguageIdentifier()
         self._slang = SlangNormalizer()
         self._emotion = EmotionDetector()
         self._emotion_ready = False
@@ -119,7 +125,7 @@ class CorrectionService:
             emotion = self._emotion.detect(text) if self._emotion_ready else None
             normalized = phase0["normalized"]
             if normalized.strip():
-                result = self._correct_phases(normalized)
+                result = self._correct_code_mixed(normalized)
             else:
                 # The input was only emoji: there are no words to spell-correct.
                 result = {
@@ -136,6 +142,82 @@ class CorrectionService:
                     },
                 }
             return {"input": text, "phase0": phase0, "emotion": emotion, **result}
+
+    def is_english_token(self, token: str) -> bool:
+        """True for English words, which must not be forced onto the Indic lexicon.
+
+        Lexicon words always count as Indic. Letter stretching is ignored, so
+        "doingggg" is checked as "doing".
+        """
+        core = _EDGE_PUNCTUATION.sub("", token).casefold()
+        if not core or core in self._lexicon or not core.isalpha():
+            return False
+        variants = {core, _LONG_REPEAT.sub(r"\1\1", core), _LONG_REPEAT.sub(r"\1", core)}
+        if variants & self._lexicon:
+            return False
+        return any(self._language_id.is_english_word(variant) for variant in variants)
+
+    def _correct_code_mixed(self, text: str) -> dict[str, Any]:
+        """Send only Indic words through Phases 1-3; English words pass through unchanged."""
+        tokens = text.split()
+        english = [self.is_english_token(token) for token in tokens]
+        languages = [
+            {"token": token, "label": "ENGLISH" if is_en else "ROMANIZED_INDIC"}
+            for token, is_en in zip(tokens, english)
+        ]
+        if not any(english):
+            # Pure Romanized Indic: exactly the CIE3 behaviour.
+            return {**self._correct_phases(text), "languages": languages}
+
+        indic_text = " ".join(token for token, is_en in zip(tokens, english) if not is_en)
+        if indic_text:
+            indic = self._correct_phases(indic_text)
+        else:
+            indic = {
+                "phase1": "", "phase1_guided": "", "phase1_steps": [],
+                "phase2": "", "phase2_steps": [], "phase3": "",
+                "phase3_trace": {"model_output": None, "decision": "", "output": ""},
+            }
+
+        def splice(corrected: str) -> str:
+            """Put English tokens back between the corrected Indic words."""
+            corrected_words = iter(corrected.split())
+            merged = [token if is_en else next(corrected_words, token) for token, is_en in zip(tokens, english)]
+            return " ".join(merged)
+
+        def splice_steps(steps: list[dict[str, Any]], english_step: Any) -> list[dict[str, Any]]:
+            indic_steps = iter(steps)
+            return [
+                english_step(token) if is_en else next(indic_steps)
+                for token, is_en in zip(tokens, english)
+            ]
+
+        skipped = "English word (language ID); kept unchanged"
+        english_count = sum(english)
+        decision = indic["phase3_trace"]["decision"]
+        return {
+            "phase1": splice(indic["phase1"]),
+            "phase1_guided": splice(indic["phase1_guided"]),
+            "phase1_steps": splice_steps(
+                indic["phase1_steps"],
+                lambda w: {"original": w, "corrected": w, "distance": 0, "candidates": [], "decision": skipped},
+            ),
+            "phase2": splice(indic["phase2"]),
+            "phase2_steps": splice_steps(
+                indic["phase2_steps"],
+                lambda w: {"original": w, "model_output": w, "corrected": w, "decision": skipped},
+            ),
+            "phase3": splice(indic["phase3"]),
+            "phase3_trace": {
+                **indic["phase3_trace"],
+                "decision": (
+                    f"{decision + '; ' if decision else ''}"
+                    f"{english_count} English word{'s' if english_count != 1 else ''} kept unchanged"
+                ),
+                "output": splice(indic["phase3"]),
+            },
+            "languages": languages,
+        }
 
     def _correct_phases(self, text: str) -> dict[str, Any]:
         """Phases 1-3, unchanged from the CIE3 version. Caller holds the inference lock."""

@@ -20,6 +20,14 @@ py -3.12 -m venv .venv
 python -m pip install -r requirements.txt
 ```
 
+Download NLTK's English word list once. Language identification uses it so that
+English words in code-mixed text skip the Indic correction phases (without it, a
+143-word fallback list is used and many English words get "corrected"):
+
+```powershell
+python -c "import nltk; nltk.download('words')"
+```
+
 Build the React + Cult UI frontend once (needs Node.js 20+), and again after
 any change in `web/`:
 

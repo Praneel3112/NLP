@@ -69,6 +69,32 @@ class CorrectionServicePhaseTwoTests(unittest.TestCase):
         self.assertEqual(with_extras["input"], "namsate aap 😂 plz")
         self.assertIn("emotion", with_extras)
 
+    def test_english_words_are_not_forced_onto_the_indic_lexicon(self) -> None:
+        self.service._rnn.predict_word.return_value = "amar"
+
+        result = self.service.correct("how are you doingggg")
+
+        for phase in ("phase1", "phase2", "phase3"):
+            self.assertTrue(result[phase].startswith("how are you"), (phase, result[phase]))
+        self.assertEqual(
+            [item["label"] for item in result["languages"]][:3],
+            ["ENGLISH", "ENGLISH", "ENGLISH"],
+        )
+
+    def test_code_mixed_sentence_corrects_only_indic_words(self) -> None:
+        self.service._rnn.predict_word.return_value = "namaste"
+
+        result = self.service.correct("namsate how are you aap")
+
+        self.assertEqual(result["phase2"], "namaste how are you aap")
+        self.assertEqual(result["phase3"], "namsate how are you aap")  # mock Transformer echoes its input
+        self.assertIn("English", result["phase1_steps"][1]["decision"])
+
+    def test_lexicon_words_that_look_english_stay_indic(self) -> None:
+        self.assertFalse(self.service.is_english_token("ho"))
+        self.assertFalse(self.service.is_english_token("naam"))
+        self.assertTrue(self.service.is_english_token("How,"))
+
     def test_emoji_only_input_skips_correction(self) -> None:
         result = self.service.correct("😂😂")
 
