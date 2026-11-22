@@ -6,6 +6,8 @@ from src.correction.rnn_baseline import Seq2SeqRNN
 from src.correction.transformer_models import TransformerCorrector
 from src.correction.pipeline import LEXICON, build_training_pairs
 from src.evaluation.metrics import EvaluationSuite
+from src.emotion.detector import EmotionDetector
+from src.preprocessing.slang_normalizer import SlangNormalizer
 
 
 def main():
@@ -229,6 +231,27 @@ def main():
         )
     print("=" * table_width)
     print("Metric guide: lower CER/WER is better; higher BLEU, exact match, and semantic similarity are better.")
+
+    print("\nSTEP 5 - SLANG NORMALIZATION (PHASE 0) AND EMOTION DETECTION")
+    print("-" * 96)
+    normalizer = SlangNormalizer()
+    emotion_detector = EmotionDetector()
+    emotion_metrics = emotion_detector.train()
+    print(
+        f"  Emotion classifier trained on {emotion_metrics['train_size']} sentences, "
+        f"tested on {emotion_metrics['test_size']} unseen sentences."
+    )
+    for name, scores in emotion_metrics["comparison"].items():
+        print(f"    {name:<11} accuracy {scores['accuracy']:.4f} | macro-F1 {scores['macro_f1']:.4f}")
+    print(f"    5-fold CV accuracy (model only): {emotion_metrics['cv_accuracy_mean']:.4f}")
+    for sample in ("bht gussa aa raha h 😡😡", "not happy yaar 😔", "namast aap kaise ho 😂", "love u maa ❤️"):
+        phase0 = normalizer.normalize(sample)
+        emotion = emotion_detector.detect(sample)
+        cues = ", ".join(f"{e['token']}->{e['emotion']}" for e in emotion["evidence"]) or "none"
+        print(f"  {sample}")
+        print(f"    Phase 0  : {phase0['normalized']}")
+        print(f"    Emotion  : {emotion['label']} ({emotion['confidence']:.0%}, {emotion['method']}, intensity {emotion['intensity']})")
+        print(f"    Evidence : {cues}")
     print("\nPipeline completed successfully.")
 
 

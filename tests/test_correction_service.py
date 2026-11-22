@@ -56,6 +56,26 @@ class CorrectionServicePhaseTwoTests(unittest.TestCase):
         self.assertEqual(result["phase2"], unknown)
         self.assertIn("Kept input", result["phase2_steps"][0]["decision"])
 
+    def test_phase_zero_feeds_correction_without_changing_plain_text(self) -> None:
+        self.service._rnn.predict_word.return_value = "namaste"
+
+        plain = self.service.correct("namsate aap")
+        with_extras = self.service.correct("namsate aap 😂 plz")
+
+        self.assertEqual(plain["input"], "namsate aap")
+        self.assertEqual(plain["phase0"]["normalized"], "namsate aap")
+        self.assertEqual(plain["phase2"], "namaste aap")
+        self.assertEqual(with_extras["phase0"]["normalized"], "namsate aap please")
+        self.assertEqual(with_extras["input"], "namsate aap 😂 plz")
+        self.assertIn("emotion", with_extras)
+
+    def test_emoji_only_input_skips_correction(self) -> None:
+        result = self.service.correct("😂😂")
+
+        self.assertEqual(result["phase3"], "")
+        self.assertEqual(result["phase1_steps"], [])
+        self.service._rnn.predict_word.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()

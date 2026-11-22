@@ -4,13 +4,15 @@ import threading
 import traceback
 from typing import Any
 
-import editdistance
+from src.detection import levenshtein as editdistance
 import torch
 
 from src.correction.pipeline import LEXICON, build_training_pairs
 from src.correction.rnn_baseline import Seq2SeqRNN
 from src.correction.transformer_models import TransformerCorrector
 from src.detection.edit_distance import EditDistanceDetector
+from src.emotion.detector import EmotionDetector
+from src.preprocessing.slang_normalizer import SlangNormalizer
 
 TRAINING_EPOCHS = 20
 
@@ -28,8 +30,13 @@ class CorrectionService:
             "training_examples": 0,
             "phase2_loss": None,
             "phase3_loss": None,
+            "emotion_accuracy": None,
+            "emotion_macro_f1": None,
         }
         self._edit_detector = EditDistanceDetector(list(LEXICON))
+        self._slang = SlangNormalizer()
+        self._emotion = EmotionDetector()
+        self._emotion_ready = False
         self._rnn: Seq2SeqRNN | None = None
         self._transformer: TransformerCorrector | None = None
 
@@ -37,6 +44,14 @@ class CorrectionService:
         """Train both models once, reporting progress and any startup failure."""
         try:
             torch.set_num_threads(1)
+            self._update_state(stage="Training emotion classifier (TF-IDF + Logistic Regression)")
+            emotion_metrics = self._emotion.train()
+            self._emotion_ready = True
+            self._update_state(
+                emotion_accuracy=emotion_metrics["comparison"]["hybrid"]["accuracy"],
+                emotion_macro_f1=emotion_metrics["comparison"]["hybrid"]["macro_f1"],
+            )
+
             sources, targets = build_training_pairs()
             self._update_state(
                 stage=f"Training Phase 2 · character-level GRU ({TRAINING_EPOCHS} epochs)",
@@ -83,8 +98,11 @@ class CorrectionService:
         with self._state_lock:
             return dict(self._state)
 
+    def get_emotion_metrics(self) -> dict[str, Any] | None:
+        return self._emotion.metrics if self._emotion_ready else None
+
     def correct(self, text: str) -> dict[str, Any]:
-        """Run the edit-distance, GRU, and Transformer phases on one sentence."""
+        """Run Phase 0 (slang), emotion detection, and the three correction phases."""
         if not text.strip():
             raise ValueError("Text must contain at least one non-whitespace character.")
         if any(len(word) > 120 for word in text.split()):
@@ -97,110 +115,133 @@ class CorrectionService:
                     raise RuntimeError(status["error"] or "Model training failed.")
                 raise RuntimeError("The correction models are still training.")
 
-            phase1, errors = self._edit_detector.process_sentence(text)
-            errors_by_word = {item["original"]: item for item in errors}
-            phase1_steps: list[dict[str, Any]] = []
-            guided_words: list[str] = []
+            phase0 = self._slang.normalize(text)
+            emotion = self._emotion.detect(text) if self._emotion_ready else None
+            normalized = phase0["normalized"]
+            if normalized.strip():
+                result = self._correct_phases(normalized)
+            else:
+                # The input was only emoji: there are no words to spell-correct.
+                result = {
+                    "phase1": "",
+                    "phase1_guided": "",
+                    "phase1_steps": [],
+                    "phase2": "",
+                    "phase2_steps": [],
+                    "phase3": "",
+                    "phase3_trace": {
+                        "model_output": None,
+                        "decision": "No words to correct; the input contained only emoji.",
+                        "output": "",
+                    },
+                }
+            return {"input": text, "phase0": phase0, "emotion": emotion, **result}
 
-            for word in text.split():
-                candidate, is_error, distance = (
-                    self._edit_detector.detect_and_correct_word(word)
-                )
-                if is_error and distance <= 1:
-                    guided_words.append(candidate)
-                    error = errors_by_word.get(word)
-                    phase1_steps.append(
-                        {
-                            "original": word,
-                            "corrected": candidate,
-                            "distance": distance,
-                            "candidates": (
-                                error["candidates"] if error else [candidate]
-                            ),
-                            "decision": "High-confidence lexicon match",
-                        }
-                    )
-                elif not is_error:
-                    guided_words.append(word)
-                    phase1_steps.append(
-                        {
-                            "original": word,
-                            "corrected": word,
-                            "distance": 0,
-                            "candidates": [word],
-                            "decision": "Already in sample lexicon",
-                        }
-                    )
-                else:
-                    guided_words.append(word)
-                    error = errors_by_word.get(word)
-                    phase1_steps.append(
-                        {
-                            "original": word,
-                            "corrected": word,
-                            "distance": distance,
-                            "candidates": error["candidates"] if error else [],
-                            "decision": "Kept unchanged; not passed as a correction",
-                        }
-                    )
+    def _correct_phases(self, text: str) -> dict[str, Any]:
+        """Phases 1-3, unchanged from the CIE3 version. Caller holds the inference lock."""
+        phase1, errors = self._edit_detector.process_sentence(text)
+        errors_by_word = {item["original"]: item for item in errors}
+        phase1_steps: list[dict[str, Any]] = []
+        guided_words: list[str] = []
 
-            phase1_guided = " ".join(guided_words)
-            phase2_words: list[str] = []
-            phase2_steps: list[dict[str, Any]] = []
-            lexicon = {word.casefold() for word in LEXICON}
-            for word in phase1_guided.split():
-                if word.casefold() in lexicon:
-                    corrected = word
-                    model_output = word
-                    decision = "Passed through; already in sample lexicon"
-                else:
-                    model_output = self._rnn.predict_word(word)
-                    model_word = model_output.casefold()
-                    nearest_word, is_error, distance = (
-                        self._edit_detector.detect_and_correct_word(
-                            word,
-                            max_distance=MAX_LEXICON_DISTANCE,
-                        )
-                    )
-                    model_distance = (
-                        editdistance.eval(word.casefold(), model_word)
-                        if model_word in lexicon
-                        else MAX_LEXICON_DISTANCE + 1
-                    )
-
-                    if model_distance <= MAX_LEXICON_DISTANCE:
-                        corrected = model_word
-                        decision = "Accepted GRU output within lexicon distance"
-                    elif is_error and distance <= MAX_LEXICON_DISTANCE:
-                        corrected = nearest_word
-                        decision = "Used lexicon safeguard for out-of-lexicon GRU output"
-                    else:
-                        corrected = word
-                        decision = "Kept input; no close lexicon correction"
-
-                phase2_words.append(corrected)
-                phase2_steps.append(
+        for word in text.split():
+            candidate, is_error, distance = (
+                self._edit_detector.detect_and_correct_word(word)
+            )
+            if is_error and distance <= 1:
+                guided_words.append(candidate)
+                error = errors_by_word.get(word)
+                phase1_steps.append(
                     {
                         "original": word,
-                        "model_output": model_output,
-                        "corrected": corrected,
-                        "decision": decision,
+                        "corrected": candidate,
+                        "distance": distance,
+                        "candidates": (
+                            error["candidates"] if error else [candidate]
+                        ),
+                        "decision": "High-confidence lexicon match",
+                    }
+                )
+            elif not is_error:
+                guided_words.append(word)
+                phase1_steps.append(
+                    {
+                        "original": word,
+                        "corrected": word,
+                        "distance": 0,
+                        "candidates": [word],
+                        "decision": "Already in sample lexicon",
+                    }
+                )
+            else:
+                guided_words.append(word)
+                error = errors_by_word.get(word)
+                phase1_steps.append(
+                    {
+                        "original": word,
+                        "corrected": word,
+                        "distance": distance,
+                        "candidates": error["candidates"] if error else [],
+                        "decision": "Kept unchanged; not passed as a correction",
                     }
                 )
 
-            phase2 = " ".join(phase2_words)
-            phase3 = self._transformer.correct_sentence(phase1_guided)
+        phase1_guided = " ".join(guided_words)
+        phase2_words: list[str] = []
+        phase2_steps: list[dict[str, Any]] = []
+        lexicon = {word.casefold() for word in LEXICON}
+        for word in phase1_guided.split():
+            if word.casefold() in lexicon:
+                corrected = word
+                model_output = word
+                decision = "Passed through; already in sample lexicon"
+            else:
+                model_output = self._rnn.predict_word(word)
+                model_word = model_output.casefold()
+                nearest_word, is_error, distance = (
+                    self._edit_detector.detect_and_correct_word(
+                        word,
+                        max_distance=MAX_LEXICON_DISTANCE,
+                    )
+                )
+                model_distance = (
+                    editdistance.eval(word.casefold(), model_word)
+                    if model_word in lexicon
+                    else MAX_LEXICON_DISTANCE + 1
+                )
 
-            return {
-                "input": text,
-                "phase1": phase1,
-                "phase1_guided": phase1_guided,
-                "phase1_steps": phase1_steps,
-                "phase2": phase2,
-                "phase2_steps": phase2_steps,
-                "phase3": phase3,
-                "phase3_trace": dict(self._transformer.last_trace),
-            }
+                if model_distance <= MAX_LEXICON_DISTANCE:
+                    corrected = model_word
+                    decision = "Accepted GRU output within lexicon distance"
+                elif is_error and distance <= MAX_LEXICON_DISTANCE:
+                    corrected = nearest_word
+                    decision = "Used lexicon safeguard for out-of-lexicon GRU output"
+                else:
+                    corrected = word
+                    decision = "Kept input; no close lexicon correction"
+
+            phase2_words.append(corrected)
+            phase2_steps.append(
+                {
+                    "original": word,
+                    "model_output": model_output,
+                    "corrected": corrected,
+                    "decision": decision,
+                }
+            )
+
+        phase2 = " ".join(phase2_words)
+        phase3 = self._transformer.correct_sentence(phase1_guided)
+
+        return {
+            "phase1": phase1,
+            "phase1_guided": phase1_guided,
+            "phase1_steps": phase1_steps,
+            "phase2": phase2,
+            "phase2_steps": phase2_steps,
+            "phase3": phase3,
+            "phase3_trace": dict(self._transformer.last_trace),
+        }
 
     def _update_state(self, **updates: Any) -> None:
         with self._state_lock:

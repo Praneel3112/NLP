@@ -2,7 +2,7 @@
 
 import re
 
-import editdistance
+from src.detection import levenshtein as editdistance
 
 
 class EditDistanceDetector:
