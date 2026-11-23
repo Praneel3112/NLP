@@ -1,4 +1,7 @@
-editdistance
+editdistance; python_version < "3.13"
+rapidfuzz
 jiwer
 nltk
 sentence-transformers
+scikit-learn
+emoji

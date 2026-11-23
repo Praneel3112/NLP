@@ -8,8 +8,18 @@ from torch import Tensor, nn
 from src.detection.edit_distance import EditDistanceDetector
 
 
+# Settings from the project report: 64-d character embeddings, 256-d hidden states.
+EMBEDDING_DIM = 64
+HIDDEN_DIM = 256
+
+
 class EncoderRNN(nn.Module):
-    """Embed source characters and encode them with a three-layer GRU."""
+    """Embed source characters and encode them with a 3-layer bidirectional GRU.
+
+    Returns the per-character states (forward and backward concatenated, so
+    ``2 * hidden_dim`` wide) and a single ``[1, batch, hidden_dim]`` state that
+    initialises the one-layer decoder.
+    """
 
     def __init__(
         self,
@@ -20,30 +30,46 @@ class EncoderRNN(nn.Module):
         dropout: float = 0.1,
     ) -> None:
         super().__init__()
+        self.pad_idx = pad_idx
         self.embedding = nn.Embedding(input_dim, embedding_dim, padding_idx=pad_idx)
         self.gru = nn.GRU(
             embedding_dim,
             hidden_dim,
             num_layers=3,
             dropout=dropout,
+            bidirectional=True,
         )
+        self.bridge = nn.Linear(hidden_dim * 2, hidden_dim)
 
     def forward(self, src: Tensor) -> tuple[Tensor, Tensor]:
         """Encode ``src`` shaped ``[source_length, batch_size]``."""
         embedded = self.embedding(src)
-        return self.gru(embedded)
+        # Packing keeps padding out of the backward direction's starting state.
+        lengths = src.ne(self.pad_idx).sum(dim=0).clamp(min=1).cpu()
+        packed = nn.utils.rnn.pack_padded_sequence(embedded, lengths, enforce_sorted=False)
+        packed_outputs, hidden = self.gru(packed)
+        outputs, _ = nn.utils.rnn.pad_packed_sequence(packed_outputs, total_length=src.size(0))
+        # hidden is [layers * 2, batch, hidden]; join the last layer's two directions.
+        final = torch.cat((hidden[-2], hidden[-1]), dim=1)
+        return outputs, torch.tanh(self.bridge(final)).unsqueeze(0)
 
 
 class Attention(nn.Module):
     """Bahdanau additive or Luong dot-product attention."""
 
-    def __init__(self, hidden_dim: int, attention_type: str = "bahdanau") -> None:
+    def __init__(
+        self,
+        hidden_dim: int,
+        attention_type: str = "bahdanau",
+        encoder_dim: int | None = None,
+    ) -> None:
         super().__init__()
         if attention_type not in {"bahdanau", "luong"}:
             raise ValueError("attention_type must be 'bahdanau' or 'luong'")
         self.attention_type = attention_type
+        encoder_dim = encoder_dim or hidden_dim
+        self.encoder_projection = nn.Linear(encoder_dim, hidden_dim, bias=False)
         if attention_type == "bahdanau":
-            self.encoder_projection = nn.Linear(hidden_dim, hidden_dim, bias=False)
             self.decoder_projection = nn.Linear(hidden_dim, hidden_dim, bias=False)
             self.energy = nn.Linear(hidden_dim, 1, bias=False)
 
@@ -64,7 +90,7 @@ class Attention(nn.Module):
             ).squeeze(-1)
         else:
             scores = torch.bmm(
-                encoder_batch_first,
+                self.encoder_projection(encoder_batch_first),
                 decoder_hidden.unsqueeze(2),
             ).squeeze(2)
 
@@ -92,7 +118,7 @@ class Attention(nn.Module):
 
 
 class DecoderRNN(nn.Module):
-    """Decode target characters while attending to source encoder states."""
+    """One-layer GRU decoder with Bahdanau attention over the encoder states."""
 
     def __init__(
         self,
@@ -106,15 +132,11 @@ class DecoderRNN(nn.Module):
         super().__init__()
         self.output_dim = output_dim
         self.embedding = nn.Embedding(output_dim, embedding_dim, padding_idx=pad_idx)
-        self.attention = Attention(hidden_dim, attention_type)
-        self.gru = nn.GRU(
-            embedding_dim + hidden_dim,
-            hidden_dim,
-            num_layers=3,
-            dropout=dropout,
-        )
+        encoder_dim = hidden_dim * 2  # bidirectional encoder states
+        self.attention = Attention(hidden_dim, attention_type, encoder_dim)
+        self.gru = nn.GRU(embedding_dim + encoder_dim, hidden_dim, num_layers=1)
         self.output_projection = nn.Linear(
-            embedding_dim + hidden_dim * 2,
+            embedding_dim + hidden_dim + encoder_dim,
             output_dim,
         )
 
@@ -284,8 +306,8 @@ class Seq2SeqRNN(Seq2Seq):
                 self,
                 input_dim=self.input_dim,
                 output_dim=self.output_dim,
-                embedding_dim=max(8, min(32, self.input_dim // 2)),
-                hidden_dim=max(16, min(64, self.input_dim // 2)),
+                embedding_dim=EMBEDDING_DIM,
+                hidden_dim=HIDDEN_DIM,
                 pad_idx=self.pad_idx,
                 sos_idx=self.sos_idx,
                 eos_idx=self.eos_idx,
@@ -324,8 +346,8 @@ class Seq2SeqRNN(Seq2Seq):
             self,
             input_dim=self.input_dim,
             output_dim=self.output_dim,
-            embedding_dim=max(8, min(32, self.input_dim // 2)),
-            hidden_dim=max(16, min(64, self.input_dim // 2)),
+            embedding_dim=EMBEDDING_DIM,
+            hidden_dim=HIDDEN_DIM,
             pad_idx=self.pad_idx,
             sos_idx=self.sos_idx,
             eos_idx=self.eos_idx,
@@ -340,8 +362,14 @@ class Seq2SeqRNN(Seq2Seq):
         learning_rate: float = 1e-3,
         teacher_forcing_ratio: float = 0.5,
         verbose: bool = False,
+        batch_size: int = 64,
+        seed: int | None = 42,
     ) -> float:
-        """Train a character-level seq2seq model on noisy-to-clean sentence pairs."""
+        """Train a character-level seq2seq model on noisy-to-clean sentence pairs.
+
+        Words are trained in mini-batches (``batch_size``, 64 in the report). A
+        ``seed`` makes initialisation, shuffling and dropout reproducible.
+        """
         if len(source_sentences) != len(target_sentences):
             raise ValueError("source and target sentence counts must match")
         if not source_sentences:
@@ -352,6 +380,11 @@ class Seq2SeqRNN(Seq2Seq):
             raise ValueError("learning_rate must be positive")
         if not 0.0 <= teacher_forcing_ratio <= 1.0:
             raise ValueError("teacher_forcing_ratio must be between 0 and 1")
+        if batch_size <= 0:
+            raise ValueError("batch_size must be positive")
+        if seed is not None:
+            torch.manual_seed(seed)
+        shuffler = random.Random(seed)
 
         training_pairs: list[tuple[str, str]] = []
         for source, target in zip(source_sentences, target_sentences):
@@ -390,17 +423,24 @@ class Seq2SeqRNN(Seq2Seq):
         self.train()
         optimizer = torch.optim.Adam(self.parameters(), lr=learning_rate)
         criterion = nn.CrossEntropyLoss(ignore_index=self.pad_idx)
+        encoded_pairs = [
+            (
+                self._encode_sequence(source, self.char2idx, self.pad_idx),
+                self._encode_sequence(target, self.char2idx, self.pad_idx),
+            )
+            for source, target in training_pairs
+        ]
 
         last_loss = 0.0
         for epoch in range(1, epochs + 1):
             epoch_loss = 0.0
-            shuffled_pairs = training_pairs.copy()
-            random.shuffle(shuffled_pairs)
-            for src_text, trg_text in shuffled_pairs:
-                src_tensor = self._encode_sequence(src_text, self.char2idx, self.pad_idx)
-                trg_tensor = self._encode_sequence(trg_text, self.char2idx, self.pad_idx)
-                src = torch.tensor(src_tensor, dtype=torch.long, device=self.device).unsqueeze(1)
-                trg = torch.tensor(trg_tensor, dtype=torch.long, device=self.device).unsqueeze(1)
+            batch_count = 0
+            shuffled_pairs = encoded_pairs.copy()
+            shuffler.shuffle(shuffled_pairs)
+            for start in range(0, len(shuffled_pairs), batch_size):
+                batch = shuffled_pairs[start : start + batch_size]
+                src = self._pad_batch([item[0] for item in batch])
+                trg = self._pad_batch([item[1] for item in batch])
 
                 optimizer.zero_grad()
                 logits = self(src, trg, teacher_forcing_ratio=teacher_forcing_ratio)
@@ -413,12 +453,24 @@ class Seq2SeqRNN(Seq2Seq):
                 nn.utils.clip_grad_norm_(self.parameters(), max_norm=1.0)
                 optimizer.step()
                 epoch_loss += float(loss.item())
+                batch_count += 1
 
-            last_loss = epoch_loss / len(training_pairs)
+            last_loss = epoch_loss / max(1, batch_count)
             if verbose:
                 print(f"Epoch {epoch}/{epochs} - loss: {last_loss:.4f}")
 
+        self.eval()
         return last_loss
+
+    def _pad_batch(self, sequences: list[list[int]]) -> Tensor:
+        """Stack index lists into a padded ``[longest, batch]`` tensor."""
+        longest = max(len(sequence) for sequence in sequences)
+        batch = torch.full(
+            (longest, len(sequences)), self.pad_idx, dtype=torch.long, device=self.device
+        )
+        for column, sequence in enumerate(sequences):
+            batch[: len(sequence), column] = torch.tensor(sequence, dtype=torch.long)
+        return batch
 
     @staticmethod
     def _encode_sequence(
@@ -460,6 +512,14 @@ class Seq2SeqRNN(Seq2Seq):
 
         return inference_correct(self, word, char2idx, idx2char)
 
+    def predict_word_with_confidence(self, word: str) -> tuple[str, float]:
+        """Like :meth:`predict_word` but also return the decoder's mean per-character confidence."""
+        if not word:
+            return "", 1.0
+        if self.encoder is None or self.decoder is None:
+            return self.predict_word(word), 1.0
+        return inference_correct(self, word, self.char2idx, self.idx2char, return_confidence=True)
+
     def correct_sentence(
         self,
         sentence: str,
@@ -492,10 +552,16 @@ def inference_correct(
     word: str,
     char2idx: dict[str, int],
     idx2char: dict[int, str],
-) -> str:
-    """Greedily correct a word using a trained character-level seq2seq model."""
+    return_confidence: bool = False,
+) -> "str | tuple[str, float]":
+    """Greedily correct a word using a trained character-level seq2seq model.
+
+    With ``return_confidence`` the result is ``(word, confidence)`` where confidence is the
+    mean probability the decoder gave to each character it chose (and to stopping): close to
+    1.0 when the model is sure, much lower on words it has never seen the like of.
+    """
     if not word:
-        return ""
+        return ("", 1.0) if return_confidence else ""
 
     normalized_char2idx = {
         str(token).casefold(): int(index) for token, index in char2idx.items()
@@ -537,6 +603,7 @@ def inference_correct(
             encoder_outputs, hidden = model.encoder(src)
             input_token = torch.tensor([sos_idx], dtype=torch.long, device=device)
             output_chars: list[str] = []
+            step_probabilities: list[float] = []
             for _ in range(max_length):
                 logits, hidden, _ = model.decoder(
                     input_token,
@@ -546,6 +613,7 @@ def inference_correct(
                 )
                 next_index = logits.argmax(dim=1)
                 output_index = int(next_index.item())
+                step_probabilities.append(float(torch.softmax(logits, dim=1)[0, output_index]))
                 if output_index == eos_idx:
                     break
                 if output_index in {sos_idx, pad_idx, unk_idx}:
@@ -557,4 +625,8 @@ def inference_correct(
     finally:
         model.train(was_training)
 
-    return "".join(output_chars)
+    corrected = "".join(output_chars)
+    if return_confidence:
+        confidence = sum(step_probabilities) / len(step_probabilities) if step_probabilities else 0.0
+        return corrected, confidence
+    return corrected

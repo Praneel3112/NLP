@@ -1,0 +1,1497 @@
+word,language,meaning
+namaste,Hindi,hello
+aap,Hindi,you (polite)
+kaise,Hindi,how
+ho,Hindi,are
+nanna,Kannada,my
+hesaru,Kannada,name
+ravi,Kannada,Ravi (name)
+en,Tamil,my
+peyar,Tamil,name
+meena,Tamil,Meena (name)
+amar,Bengali,my
+naam,Bengali,name
+suman,Bengali,Suman (name)
+main,Hindi,I
+mein,Hindi,in
+hum,Hindi,we
+tum,Hindi,you
+tu,Hindi,you (informal)
+mera,Hindi,my
+meri,Hindi,my (fem.)
+mere,Hindi,my (pl.)
+tera,Hindi,your
+teri,Hindi,your (fem.)
+tere,Hindi,your (pl.)
+uska,Hindi,his/her
+uski,Hindi,his/her (fem.)
+unka,Hindi,their
+apna,Hindi,own
+mujhe,Hindi,to me
+tujhe,Hindi,to you
+hai,Hindi,is
+hain,Hindi,are
+tha,Hindi,was
+thi,Hindi,was (fem.)
+hoon,Hindi,am
+hoga,Hindi,will be
+kya,Hindi,what
+kyun,Hindi,why
+kab,Hindi,when
+kahan,Hindi,where
+kaun,Hindi,who
+kitna,Hindi,how much
+kaisa,Hindi,how (masc.)
+kaisi,Hindi,how (fem.)
+yeh,Hindi,this
+woh,Hindi,that
+yahan,Hindi,here
+wahan,Hindi,there
+abhi,Hindi,now
+aaj,Hindi,today
+kal,Hindi,tomorrow/yesterday
+phir,Hindi,again
+bhi,Hindi,also
+aur,Hindi,and
+lekin,Hindi,but
+nahi,Hindi,no
+haan,Hindi,yes
+accha,Hindi,good/okay
+theek,Hindi,fine
+bahut,Hindi,very
+thoda,Hindi,a little
+sab,Hindi,all
+kuch,Hindi,some
+koi,Hindi,someone
+bas,Hindi,enough
+sirf,Hindi,only
+jaldi,Hindi,quickly
+ghar,Hindi,home
+khana,Hindi,food
+paani,Hindi,water
+dost,Hindi,friend
+yaar,Hindi,friend/buddy
+bhai,Hindi,brother
+behen,Hindi,sister
+maa,Hindi,mother
+papa,Hindi,father
+beta,Hindi,son
+log,Hindi,people
+kaam,Hindi,work
+din,Hindi,day
+raat,Hindi,night
+subah,Hindi,morning
+shaam,Hindi,evening
+waqt,Hindi,time
+baat,Hindi,talk/matter
+dil,Hindi,heart
+pyaar,Hindi,love
+khush,Hindi,happy
+khushi,Hindi,happiness
+dukh,Hindi,sorrow
+dukhi,Hindi,sad
+gussa,Hindi,anger
+darr,Hindi,fear
+udaas,Hindi,sad
+bura,Hindi,bad
+sundar,Hindi,beautiful
+naya,Hindi,new
+bada,Hindi,big
+chhota,Hindi,small
+raha,Hindi,-ing (masc.)
+rahi,Hindi,-ing (fem.)
+rahe,Hindi,-ing (pl.)
+gaya,Hindi,went
+gayi,Hindi,went (fem.)
+aaya,Hindi,came
+aa,Hindi,come
+ja,Hindi,go
+kar,Hindi,do
+karo,Hindi,do (imperative)
+karna,Hindi,to do
+chalo,Hindi,let's go
+dekho,Hindi,look
+suno,Hindi,listen
+bolo,Hindi,speak
+batao,Hindi,tell
+pata,Hindi,known
+samajh,Hindi,understand
+zaroor,Hindi,surely
+shukriya,Hindi,thanks
+dhanyavaad,Hindi,thank you
+maaf,Hindi,sorry/forgive
+mast,Hindi,great
+badhiya,Hindi,excellent
+sahi,Hindi,right
+galat,Hindi,wrong
+matlab,Hindi,meaning
+kyunki,Hindi,because
+agar,Hindi,if
+toh,Hindi,then
+sach,Hindi,truth
+mil,Hindi,meet
+naanu,Kannada,I
+neenu,Kannada,you
+avanu,Kannada,he
+avalu,Kannada,she
+avaru,Kannada,they
+naavu,Kannada,we
+neevu,Kannada,you (polite)
+nimma,Kannada,your
+namma,Kannada,our
+ninna,Kannada,your (informal)
+enu,Kannada,what
+yaake,Kannada,why
+elli,Kannada,where
+yaavaga,Kannada,when
+hege,Kannada,how
+hegiddiya,Kannada,how are you
+chennagide,Kannada,it is good
+chennagiddini,Kannada,I am fine
+oota,Kannada,meal
+neeru,Kannada,water
+mane,Kannada,house
+hogu,Kannada,go
+banni,Kannada,come (polite)
+baa,Kannada,come
+maadu,Kannada,do
+illa,Kannada,no
+ide,Kannada,is there
+beku,Kannada,want
+beda,Kannada,don't want
+houdu,Kannada,yes
+swalpa,Kannada,a little
+tumba,Kannada,very
+guru,Kannada,buddy
+amma,Kannada/Tamil,mother
+appa,Kannada/Tamil,father
+akka,Kannada/Tamil,elder sister
+anna,Kannada/Tamil,elder brother
+santosha,Kannada,happiness
+dukha,Kannada,sorrow
+kopa,Kannada,anger
+bhaya,Kannada,fear
+preethi,Kannada,love
+ishta,Kannada,liking
+kushi,Kannada,joy
+aagide,Kannada,has happened
+aagtide,Kannada,is happening
+aaytu,Kannada,happened
+gottilla,Kannada,don't know
+gottu,Kannada,know
+nodu,Kannada,look
+helu,Kannada,tell
+kelsa,Kannada,work
+shaale,Kannada,school
+ooru,Kannada,town
+bega,Kannada,quickly
+naale,Kannada,tomorrow
+ivattu,Kannada,today
+ninne,Kannada,yesterday
+naan,Tamil,I
+nee,Tamil,you
+avan,Tamil,he
+aval,Tamil,she
+naanga,Tamil,we
+neenga,Tamil,you (polite)
+enna,Tamil,what
+eppadi,Tamil,how
+enga,Tamil,where
+eppo,Tamil,when
+yaaru,Tamil,who
+vanakkam,Tamil,hello
+nandri,Tamil,thank you
+romba,Tamil,very
+konjam,Tamil,a little
+nalla,Tamil,good
+irukku,Tamil,is there
+irukken,Tamil,I am
+illai,Tamil,no
+aamaa,Tamil,yes
+seri,Tamil,okay
+vaa,Tamil,come
+po,Tamil,go
+saapadu,Tamil,food
+thanni,Tamil,water
+veedu,Tamil,house
+thambi,Tamil,younger brother
+nanba,Tamil,friend
+machan,Tamil,buddy
+semma,Tamil,awesome
+kadhal,Tamil,love
+anbu,Tamil,affection
+kovam,Tamil,anger
+bayam,Tamil,fear
+santhosham,Tamil,happiness
+sogam,Tamil,sorrow
+kashtam,Tamil,difficulty
+paaru,Tamil,look
+sollu,Tamil,tell
+pannu,Tamil,do
+inniku,Tamil,today
+naalaiku,Tamil,tomorrow
+ippo,Tamil,now
+theriyum,Tamil,know
+theriyadhu,Tamil,don't know
+ami,Bengali,I
+tumi,Bengali,you
+apni,Bengali,you (polite)
+amra,Bengali,we
+tomar,Bengali,your
+tomake,Bengali,to you
+ki,Bengali,what
+keno,Bengali,why
+kothay,Bengali,where
+kobe,Bengali,when
+kemon,Bengali,how
+acho,Bengali,are (you)
+achi,Bengali,am
+bhalo,Bengali,good
+kharap,Bengali,bad
+khub,Bengali,very
+ektu,Bengali,a little
+onek,Bengali,a lot
+thik,Bengali,right/okay
+nei,Bengali,not there
+dhonnobad,Bengali,thank you
+bondhu,Bengali,friend
+baba,Bengali,father
+dada,Bengali,elder brother
+didi,Bengali,elder sister
+jol,Bengali,water
+khabar,Bengali,food
+bari,Bengali,house
+kaaj,Bengali,work
+bhalobasha,Bengali,love
+bhalobashi,Bengali,(I) love
+raag,Bengali,anger
+bhoy,Bengali,fear
+dukkho,Bengali,sorrow
+anondo,Bengali,joy
+darun,Bengali,wonderful
+shotti,Bengali,truly
+jabo,Bengali,will go
+jacchi,Bengali,am going
+korchi,Bengali,am doing
+korbo,Bengali,will do
+shono,Bengali,listen
+eso,Bengali,come
+khao,Bengali,eat
+ghum,Bengali,sleep
+inhe,Hindi,to them
+unhe,Hindi,to them
+humein,Hindi,to us
+tumhe,Hindi,to you
+tumhara,Hindi,your
+tumhari,Hindi,your (fem.)
+tumhare,Hindi,your (pl.)
+hamara,Hindi,our
+hamari,Hindi,our (fem.)
+hamare,Hindi,our (pl.)
+unki,Hindi,their (fem.)
+unke,Hindi,their (pl.)
+iska,Hindi,of this
+iski,Hindi,of this (fem.)
+iske,Hindi,of this (pl.)
+uske,Hindi,of him
+apka,Hindi,your (formal)
+apki,Hindi,"your (formal, fem.)"
+apke,Hindi,"your (formal, pl.)"
+kisi,Hindi,some
+kisko,Hindi,to whom
+kiska,Hindi,whose
+jo,Hindi,who/which
+jab,Hindi,when
+tab,Hindi,then
+jaise,Hindi,like
+waise,Hindi,that way
+isliye,Hindi,therefore
+magar,Hindi,but
+par,Hindi,but/on
+ya,Hindi,or
+ji,Hindi,sir/madam
+sahab,Hindi,sir
+bhaiya,Hindi,brother
+ek,Hindi,one
+do,Hindi,two
+teen,Hindi,three
+chaar,Hindi,four
+paanch,Hindi,five
+chhe,Hindi,six
+saat,Hindi,seven
+aath,Hindi,eight
+nau,Hindi,nine
+das,Hindi,ten
+bees,Hindi,twenty
+sau,Hindi,hundred
+hazaar,Hindi,thousand
+pehla,Hindi,first
+doosra,Hindi,second
+teesra,Hindi,third
+aakhri,Hindi,last
+aana,Hindi,to come
+jaana,Hindi,to go
+peena,Hindi,to drink
+sona,Hindi,to sleep
+uthna,Hindi,to get up
+baithna,Hindi,to sit
+chalna,Hindi,to walk
+dekhna,Hindi,to see
+sunna,Hindi,to listen
+bolna,Hindi,to speak
+likhna,Hindi,to write
+padhna,Hindi,to read
+samajhna,Hindi,to understand
+milna,Hindi,to meet
+dena,Hindi,to give
+lena,Hindi,to take
+rehna,Hindi,to stay
+hona,Hindi,to be
+lagna,Hindi,to feel
+puchna,Hindi,to ask
+kehna,Hindi,to say
+batana,Hindi,to tell
+bhejna,Hindi,to send
+rakhna,Hindi,to keep
+kholna,Hindi,to open
+band,Hindi,closed
+shuru,Hindi,start
+khatam,Hindi,finished
+paas,Hindi,near
+door,Hindi,far
+aayi,Hindi,came (fem.)
+gaye,Hindi,went (pl.)
+kiya,Hindi,did
+kiye,Hindi,did (pl.)
+diya,Hindi,gave
+liya,Hindi,took
+dekha,Hindi,saw
+dekhi,Hindi,saw (fem.)
+suna,Hindi,heard
+suni,Hindi,heard (fem.)
+bola,Hindi,said
+boli,Hindi,said (fem.)
+likha,Hindi,wrote
+padha,Hindi,read
+mila,Hindi,met
+mili,Hindi,met (fem.)
+khaya,Hindi,ate
+piya,Hindi,drank
+soya,Hindi,slept
+hua,Hindi,happened
+hui,Hindi,happened (fem.)
+hue,Hindi,happened (pl.)
+hogi,Hindi,will be (fem.)
+honge,Hindi,will be (pl.)
+rahenge,Hindi,will stay
+jayenge,Hindi,will go
+aaunga,Hindi,I will come
+jaunga,Hindi,I will go
+karunga,Hindi,I will do
+karenge,Hindi,will do
+karungi,Hindi,I will do (fem.)
+chahiye,Hindi,need
+chahta,Hindi,wants
+chahti,Hindi,wants (fem.)
+sakta,Hindi,can
+sakti,Hindi,can (fem.)
+sakte,Hindi,can (pl.)
+paya,Hindi,got
+jaata,Hindi,goes
+jaati,Hindi,goes (fem.)
+jaate,Hindi,go (pl.)
+aata,Hindi,comes
+aati,Hindi,comes (fem.)
+aate,Hindi,come (pl.)
+karta,Hindi,does
+karti,Hindi,does (fem.)
+karte,Hindi,do
+hota,Hindi,is
+hoti,Hindi,is (fem.)
+hote,Hindi,are
+kehta,Hindi,says
+kehti,Hindi,says (fem.)
+samjha,Hindi,understood
+samjhi,Hindi,understood (fem.)
+socha,Hindi,thought
+sochna,Hindi,to think
+bhoolna,Hindi,to forget
+kitab,Hindi,book
+kalam,Hindi,pen
+roti,Hindi,bread
+chawal,Hindi,rice
+dal,Hindi,lentils
+sabzi,Hindi,vegetable
+chai,Hindi,tea
+doodh,Hindi,milk
+phal,Hindi,fruit
+aam,Hindi,mango
+mithai,Hindi,sweets
+gaadi,Hindi,vehicle
+rasta,Hindi,road
+sadak,Hindi,road
+shehar,Hindi,city
+gaon,Hindi,village
+desh,Hindi,country
+duniya,Hindi,world
+insaan,Hindi,human
+aadmi,Hindi,man
+aurat,Hindi,woman
+ladka,Hindi,boy
+ladki,Hindi,girl
+bachcha,Hindi,child
+bachche,Hindi,children
+parivaar,Hindi,family
+kamra,Hindi,room
+darwaza,Hindi,door
+khidki,Hindi,window
+bazaar,Hindi,market
+dukaan,Hindi,shop
+paisa,Hindi,money
+paise,Hindi,money
+rupaye,Hindi,rupees
+naukri,Hindi,job
+mehnat,Hindi,hard work
+padhai,Hindi,studies
+imtihaan,Hindi,exam
+nateeja,Hindi,result
+savaal,Hindi,question
+jawaab,Hindi,answer
+kahani,Hindi,story
+gaana,Hindi,song
+khel,Hindi,game
+khiladi,Hindi,player
+mausam,Hindi,weather
+baarish,Hindi,rain
+garmi,Hindi,heat
+sardi,Hindi,cold
+dhoop,Hindi,sunshine
+hawa,Hindi,air
+aasmaan,Hindi,sky
+suraj,Hindi,sun
+chaand,Hindi,moon
+taara,Hindi,star
+dopahar,Hindi,afternoon
+parson,Hindi,day before/after
+hafta,Hindi,week
+mahina,Hindi,month
+saal,Hindi,year
+samay,Hindi,time
+ghanta,Hindi,hour
+zindagi,Hindi,life
+maut,Hindi,death
+dard,Hindi,pain
+bukhaar,Hindi,fever
+dawai,Hindi,medicine
+aspataal,Hindi,hospital
+dushman,Hindi,enemy
+pados,Hindi,neighbourhood
+padosi,Hindi,neighbour
+rishta,Hindi,relation
+shaadi,Hindi,wedding
+mohabbat,Hindi,love
+ishq,Hindi,love
+dimaag,Hindi,mind
+aankh,Hindi,eye
+haath,Hindi,hand
+pair,Hindi,foot
+sar,Hindi,head
+chehra,Hindi,face
+muh,Hindi,mouth
+naak,Hindi,nose
+kaan,Hindi,ear
+baal,Hindi,hair
+khoobsurat,Hindi,beautiful
+pyara,Hindi,lovely
+pyari,Hindi,lovely (fem.)
+mushkil,Hindi,difficult
+aasaan,Hindi,easy
+zyada,Hindi,more
+kam,Hindi,less
+bilkul,Hindi,absolutely
+shayad,Hindi,maybe
+hamesha,Hindi,always
+kabhi,Hindi,ever
+dheere,Hindi,slowly
+tez,Hindi,fast
+garam,Hindi,hot
+thanda,Hindi,cold
+meetha,Hindi,sweet
+teekha,Hindi,spicy
+purana,Hindi,old
+saaf,Hindi,clean
+lamba,Hindi,long
+mota,Hindi,fat
+patla,Hindi,thin
+asli,Hindi,real
+nakli,Hindi,fake
+sasta,Hindi,cheap
+mehenga,Hindi,expensive
+khali,Hindi,empty
+bhara,Hindi,full
+poora,Hindi,complete
+aadha,Hindi,half
+namaskar,Hindi,greeting
+alvida,Hindi,goodbye
+swagat,Hindi,welcome
+badhai,Hindi,congratulations
+mubarak,Hindi,blessed
+kripya,Hindi,please
+maafi,Hindi,forgiveness
+shubh,Hindi,auspicious
+chacha,Hindi,uncle
+chachi,Hindi,aunt
+mama,Hindi,uncle
+mami,Hindi,aunt
+nana,Hindi,grandfather
+nani,Hindi,grandmother
+dadi,Hindi,grandmother
+beti,Hindi,daughter
+pati,Hindi,husband
+patni,Hindi,wife
+hasna,Hindi,to laugh
+muskaan,Hindi,smile
+aansu,Hindi,tears
+pareshaan,Hindi,worried
+naraaz,Hindi,upset
+sukoon,Hindi,peace
+chain,Hindi,rest
+thakaan,Hindi,tiredness
+thaka,Hindi,tired
+neend,Hindi,sleep
+bhookh,Hindi,hunger
+pyaas,Hindi,thirst
+pehle,Hindi,before
+baad,Hindi,after
+saath,Hindi,with
+bina,Hindi,without
+liye,Hindi,for
+tak,Hindi,until
+se,Hindi,from
+ko,Hindi,to
+ka,Hindi,of
+ke,Hindi,of (pl.)
+pe,Hindi,on
+wala,Hindi,one who
+wali,Hindi,one who (fem.)
+jahan,Hindi,where
+wahi,Hindi,same
+yahi,Hindi,this very
+sabse,Hindi,most
+nahin,Hindi,no
+bahar,Hindi,outside
+andar,Hindi,inside
+upar,Hindi,above
+neeche,Hindi,below
+aage,Hindi,ahead
+peeche,Hindi,behind
+beech,Hindi,middle
+baju,Hindi,side
+saamne,Hindi,in front
+ghumna,Hindi,to roam
+khelna,Hindi,to play
+naachna,Hindi,to dance
+hasi,Hindi,laughter
+roz,Hindi,daily
+kapde,Hindi,clothes
+joote,Hindi,shoes
+ghadi,Hindi,watch
+tasveer,Hindi,picture
+chitthi,Hindi,letter
+sandesh,Hindi,message
+zaroorat,Hindi,need
+madad,Hindi,help
+koshish,Hindi,try
+mauka,Hindi,chance
+sapna,Hindi,dream
+umeed,Hindi,hope
+vishwas,Hindi,trust
+jhooth,Hindi,lie
+galti,Hindi,mistake
+saza,Hindi,punishment
+inaam,Hindi,prize
+jeet,Hindi,victory
+haar,Hindi,defeat
+nannu,Kannada,me
+nanage,Kannada,to me
+ninage,Kannada,to you
+avanige,Kannada,to him
+avalige,Kannada,to her
+namage,Kannada,to us
+nimage,Kannada,to you (pl.)
+adu,Kannada,that
+idu,Kannada,this
+yaava,Kannada,which
+yenu,Kannada,what
+hegide,Kannada,how is it
+hegiddira,Kannada,how are you (polite)
+chennagi,Kannada,well
+chennagilla,Kannada,not good
+oleyadu,Kannada,good
+kettadu,Kannada,bad
+sari,Kannada,correct
+tappu,Kannada,wrong
+gottaytu,Kannada,understood
+arthavaytu,Kannada,understood
+barutte,Kannada,will come
+hogutte,Kannada,will go
+maadtini,Kannada,I will do
+kodi,Kannada,give
+kodu,Kannada,give
+tagoli,Kannada,take
+tinni,Kannada,eat
+kudi,Kannada,drink
+malko,Kannada,sleep
+ellaru,Kannada,everyone
+ella,Kannada,all
+yelli,Kannada,where
+illi,Kannada,here
+alli,Kannada,there
+ivaga,Kannada,now
+avaga,Kannada,then
+magu,Kannada,child
+hudga,Kannada,boy
+hudugi,Kannada,girl
+thatha,Kannada,grandfather
+ajji,Kannada,grandmother
+thamma,Kannada,younger brother
+tangi,Kannada,younger sister
+hendathi,Kannada,wife
+kelasa,Kannada,work
+hana,Kannada,money
+tindi,Kannada,snack
+haalu,Kannada,milk
+bisi,Kannada,hot
+olle,Kannada,good
+jasti,Kannada,more
+kadime,Kannada,less
+maatu,Kannada,word
+kathe,Kannada,story
+haadu,Kannada,song
+kannada,Kannada,Kannada
+bengaluru,Kannada,Bengaluru
+namaskara,Kannada,greetings
+dhanyavadagalu,Kannada,thanks
+shubhodaya,Kannada,good morning
+shubharatri,Kannada,good night
+bejaru,Kannada,boredom
+nagu,Kannada,smile
+nagisu,Kannada,make laugh
+alu,Kannada,cry
+prasna,Kannada,question
+uttara,Kannada,answer
+halli,Kannada,village
+nagara,Kannada,city
+desha,Kannada,country
+ranga,Kannada,colour
+bele,Kannada,price
+pustaka,Kannada,book
+lekhana,Kannada,pen
+oduvudu,Kannada,reading
+barevudu,Kannada,writing
+helidre,Kannada,if said
+nodidre,Kannada,if seen
+banditu,Kannada,came
+hodaru,Kannada,went
+madide,Kannada,did
+togondu,Kannada,taken
+bittu,Kannada,left
+saaku,Kannada,enough
+bekaadre,Kannada,if needed
+sigutte,Kannada,will get
+aagutte,Kannada,will happen
+aagilla,Kannada,did not happen
+irbeku,Kannada,must be
+iddare,Kannada,if there is
+iddini,Kannada,I am
+iddeeni,Kannada,I am
+illwa,Kannada,isn't it
+alva,Kannada,isn't it
+haudu,Kannada,yes
+ayyo,Kannada,oh no
+chennagiruttade,Kannada,will be good
+bahala,Kannada,very
+tumbaa,Kannada,very
+bere,Kannada,other
+obba,Kannada,one person
+eradu,Kannada,two
+mooru,Kannada,three
+naalku,Kannada,four
+aidu,Kannada,five
+aaru,Kannada,six
+elu,Kannada,seven
+entu,Kannada,eight
+ombattu,Kannada,nine
+hattu,Kannada,ten
+nooru,Kannada,hundred
+saavira,Kannada,thousand
+modalu,Kannada,first
+kone,Kannada,last
+munche,Kannada,before
+nantara,Kannada,after
+jothe,Kannada,with
+illade,Kannada,without
+mele,Kannada,above
+kelage,Kannada,below
+olage,Kannada,inside
+horage,Kannada,outside
+hattira,Kannada,near
+doora,Kannada,far
+beligge,Kannada,morning
+madhyahna,Kannada,noon
+sanje,Kannada,evening
+raatri,Kannada,night
+varsha,Kannada,year
+tingalu,Kannada,month
+vaara,Kannada,week
+dina,Kannada,day
+samaya,Kannada,time
+jeevana,Kannada,life
+maranaa,Kannada,death
+kanasu,Kannada,dream
+nambike,Kannada,trust
+satya,Kannada,truth
+sullu,Kannada,lie
+sahaya,Kannada,help
+prayatna,Kannada,effort
+avakasha,Kannada,chance
+gelavu,Kannada,victory
+solu,Kannada,defeat
+ugadi,Kannada,festival
+habba,Kannada,festival
+ennoda,Tamil,my
+unnoda,Tamil,your
+avanga,Tamil,they
+ivan,Tamil,this man
+ival,Tamil,this woman
+idhu,Tamil,this
+adhu,Tamil,that
+edhu,Tamil,which
+yaarukku,Tamil,to whom
+ennaachu,Tamil,what happened
+enge,Tamil,where
+ange,Tamil,there
+inge,Tamil,here
+appo,Tamil,then
+indha,Tamil,this
+andha,Tamil,that
+sollunga,Tamil,please tell
+vaanga,Tamil,please come
+ponga,Tamil,please go
+paarunga,Tamil,please see
+saapitteengala,Tamil,did you eat
+saapitten,Tamil,I ate
+poren,Tamil,I am going
+varen,Tamil,I am coming
+pannuren,Tamil,I am doing
+irukkanga,Tamil,they are
+irukkaanga,Tamil,they are
+venum,Tamil,need
+vendaam,Tamil,don't need
+puriyum,Tamil,understand
+puriyala,Tamil,didn't understand
+mudiyum,Tamil,can
+mudiyaadhu,Tamil,cannot
+nalladhu,Tamil,good
+ketta,Tamil,bad
+niraiya,Tamil,lot
+kammi,Tamil,less
+periya,Tamil,big
+chinna,Tamil,small
+puthusu,Tamil,new
+pazhaya,Tamil,old
+azhagu,Tamil,beauty
+azhagana,Tamil,beautiful
+paati,Tamil,grandmother
+thangai,Tamil,younger sister
+machi,Tamil,buddy
+mapla,Tamil,buddy
+ponnu,Tamil,girl
+payyan,Tamil,boy
+kulandhai,Tamil,child
+kadai,Tamil,shop
+sappadu,Tamil,food
+paal,Tamil,milk
+kaapi,Tamil,coffee
+rasam,Tamil,rasam
+sambar,Tamil,sambar
+idli,Tamil,idli
+dosai,Tamil,dosa
+sorru,Tamil,rice
+nethu,Tamil,yesterday
+kaalai,Tamil,morning
+madhiyam,Tamil,afternoon
+iravu,Tamil,night
+neram,Tamil,time
+vaaram,Tamil,week
+maasam,Tamil,month
+varusham,Tamil,year
+kaadhal,Tamil,love
+nesam,Tamil,love
+santhoshama,Tamil,happily
+kavalai,Tamil,worry
+kobam,Tamil,anger
+vali,Tamil,pain
+sirippu,Tamil,laugh
+azhugai,Tamil,cry
+ennaikku,Tamil,which day
+naalu,Tamil,four
+anju,Tamil,five
+ezhu,Tamil,seven
+ettu,Tamil,eight
+onbadhu,Tamil,nine
+pathu,Tamil,ten
+aayiram,Tamil,thousand
+onnu,Tamil,one
+rendu,Tamil,two
+moonu,Tamil,three
+mudhal,Tamil,first
+kadaisi,Tamil,last
+munnaadi,Tamil,before
+appuram,Tamil,after
+kooda,Tamil,with
+illaama,Tamil,without
+mela,Tamil,above
+keezha,Tamil,below
+ulla,Tamil,inside
+veliya,Tamil,outside
+pakkam,Tamil,near
+dhoora,Tamil,far
+kelu,Tamil,ask
+pesu,Tamil,speak
+padi,Tamil,read
+ezhudhu,Tamil,write
+vilaiyaadu,Tamil,play
+paadu,Tamil,sing
+aadu,Tamil,dance
+thookam,Tamil,sleep
+pasi,Tamil,hunger
+dhaagam,Tamil,thirst
+veyil,Tamil,sun
+mazhai,Tamil,rain
+kaathu,Tamil,wind
+vaanam,Tamil,sky
+nilaa,Tamil,moon
+natchathiram,Tamil,star
+naadu,Tamil,country
+ulagam,Tamil,world
+kathai,Tamil,story
+paatu,Tamil,song
+padam,Tamil,movie
+panam,Tamil,money
+velai,Tamil,work
+padippu,Tamil,studies
+thervu,Tamil,exam
+kelvi,Tamil,question
+badhil,Tamil,answer
+sathyam,Tamil,truth
+poi,Tamil,lie
+thappu,Tamil,mistake
+udhavi,Tamil,help
+muyarchi,Tamil,effort
+vaaippu,Tamil,chance
+vetri,Tamil,victory
+thoalvi,Tamil,defeat
+nambikkai,Tamil,trust
+kanavu,Tamil,dream
+aasai,Tamil,desire
+vanakam,Tamil,hello
+nanri,Tamil,thanks
+amake,Bengali,to me
+apnar,Bengali,your (polite)
+apnake,Bengali,to you (polite)
+ora,Bengali,they
+era,Bengali,these people
+tara,Bengali,they
+eta,Bengali,this
+ota,Bengali,that
+kakhon,Bengali,when
+ekhane,Bengali,here
+okhane,Bengali,there
+kotha,Bengali,word
+bolchi,Bengali,I am saying
+bolchho,Bengali,you are saying
+jachho,Bengali,you are going
+jachchi,Bengali,I am going
+aschi,Bengali,I am coming
+aschho,Bengali,you are coming
+asbo,Bengali,will come
+dekhbo,Bengali,will see
+korchho,Bengali,you are doing
+korechi,Bengali,I have done
+korlam,Bengali,I did
+holo,Bengali,happened
+hobe,Bengali,will be
+hocche,Bengali,is happening
+achhe,Bengali,is
+ache,Bengali,is
+nai,Bengali,is not
+thako,Bengali,stay
+thaki,Bengali,I stay
+jao,Bengali,go
+esho,Bengali,come
+khabo,Bengali,will eat
+khachhi,Bengali,I am eating
+ghumabo,Bengali,will sleep
+sundor,Bengali,beautiful
+bhalobasi,Bengali,I love
+aro,Bengali,more
+kom,Bengali,less
+beshi,Bengali,more
+notun,Bengali,new
+purono,Bengali,old
+boro,Bengali,big
+choto,Bengali,small
+bon,Bengali,sister
+kaku,Bengali,uncle
+kaki,Bengali,aunt
+thakuma,Bengali,grandmother
+dadu,Bengali,grandfather
+chele,Bengali,boy
+meye,Bengali,girl
+bou,Bengali,wife
+bor,Bengali,husband
+bhaat,Bengali,rice
+maachh,Bengali,fish
+mangsho,Bengali,meat
+dim,Bengali,egg
+chaa,Bengali,tea
+mishti,Bengali,sweet
+taka,Bengali,money
+boi,Bengali,book
+khata,Bengali,notebook
+kolom,Bengali,pen
+gari,Bengali,vehicle
+shohor,Bengali,city
+gram,Bengali,village
+prithibi,Bengali,world
+akash,Bengali,sky
+surjo,Bengali,sun
+chand,Bengali,moon
+brishti,Bengali,rain
+gorom,Bengali,hot
+rod,Bengali,sunshine
+batash,Bengali,wind
+shokal,Bengali,morning
+dupur,Bengali,noon
+bikel,Bengali,afternoon
+sondhya,Bengali,evening
+aj,Bengali,today
+porshu,Bengali,day after tomorrow
+ekhon,Bengali,now
+tarpor,Bengali,then
+abar,Bengali,again
+noy,Bengali,not
+noyto,Bengali,otherwise
+kintu,Bengali,but
+tobe,Bengali,then
+jodi,Bengali,if
+karon,Bengali,reason
+tai,Bengali,so
+shubho,Bengali,auspicious
+nomoshkar,Bengali,greeting
+hashi,Bengali,laugh
+mon,Bengali,mind
+kanna,Bengali,cry
+ma,Bengali,mother
+kaj,Bengali,work
+dui,Bengali,two
+tin,Bengali,three
+char,Bengali,four
+panch,Bengali,five
+chhoy,Bengali,six
+shat,Bengali,seven
+aat,Bengali,eight
+dosh,Bengali,ten
+ekta,Bengali,a
+duto,Bengali,two
+onno,Bengali,other
+sob,Bengali,all
+keu,Bengali,someone
+kichhu,Bengali,something
+kono,Bengali,any
+prothom,Bengali,first
+shesh,Bengali,last
+age,Bengali,before
+pore,Bengali,after
+shathe,Bengali,with
+chhara,Bengali,without
+upore,Bengali,above
+niche,Bengali,below
+bhitore,Bengali,inside
+bahire,Bengali,outside
+kachhe,Bengali,near
+dure,Bengali,far
+bolbo,Bengali,will say
+shunbo,Bengali,will hear
+likhbo,Bengali,will write
+porbo,Bengali,will read
+ashbo,Bengali,will come
+lagbe,Bengali,need
+jani,Bengali,know
+janina,Bengali,don't know
+bujhi,Bengali,understand
+bujhlam,Bengali,understood
+mithya,Bengali,false
+bhul,Bengali,mistake
+sahajjo,Bengali,help
+chesta,Bengali,effort
+sujog,Bengali,chance
+jit,Bengali,victory
+har,Bengali,defeat
+biswas,Bengali,trust
+shopno,Bengali,dream
+dekh,Hindi,look
+haal,Hindi,condition
+chal,Hindi,go
+sun,Hindi,listen
+bol,Hindi,speak
+ruk,Hindi,stop
+baith,Hindi,sit
+uth,Hindi,get up
+soch,Hindi,think
+pooch,Hindi,ask
+bata,Hindi,tell
+rakh,Hindi,keep
+kah,Hindi,say
+khol,Hindi,open
+bhej,Hindi,send
+likh,Hindi,write
+padh,Hindi,read
+kha,Hindi,eat
+pee,Hindi,drink
+billi,Hindi,cat
+gaay,Hindi,cow
+bhains,Hindi,buffalo
+ghoda,Hindi,horse
+bakri,Hindi,goat
+murgi,Hindi,hen
+kauwa,Hindi,crow
+tota,Hindi,parrot
+mor,Hindi,peacock
+sher,Hindi,lion
+hathi,Hindi,elephant
+bhalu,Hindi,bear
+saanp,Hindi,snake
+chuha,Hindi,mouse
+mirchi,Hindi,chilli
+namak,Hindi,salt
+cheeni,Hindi,sugar
+tel,Hindi,oil
+ghee,Hindi,ghee
+makhan,Hindi,butter
+dahi,Hindi,curd
+paneer,Hindi,cottage cheese
+aloo,Hindi,potato
+pyaaz,Hindi,onion
+tamatar,Hindi,tomato
+gobhi,Hindi,cauliflower
+palak,Hindi,spinach
+matar,Hindi,peas
+bhindi,Hindi,okra
+baingan,Hindi,brinjal
+kela,Hindi,banana
+seb,Hindi,apple
+santra,Hindi,orange
+angoor,Hindi,grapes
+nimbu,Hindi,lemon
+gajar,Hindi,carrot
+mooli,Hindi,radish
+kheera,Hindi,cucumber
+pankha,Hindi,fan
+batti,Hindi,light
+deewar,Hindi,wall
+chhat,Hindi,roof
+seedhi,Hindi,stairs
+tala,Hindi,lock
+chaabi,Hindi,key
+bartan,Hindi,utensils
+chamach,Hindi,spoon
+katora,Hindi,bowl
+gilaas,Hindi,glass
+mez,Hindi,table
+kursi,Hindi,chair
+bistar,Hindi,bed
+takiya,Hindi,pillow
+kambal,Hindi,blanket
+chadar,Hindi,sheet
+sabun,Hindi,soap
+tauliya,Hindi,towel
+pajama,Hindi,pyjamas
+chashma,Hindi,spectacles
+thaila,Hindi,bag
+barf,Hindi,ice
+bhaap,Hindi,steam
+dhuan,Hindi,smoke
+aag,Hindi,fire
+mitti,Hindi,soil
+patthar,Hindi,stone
+ret,Hindi,sand
+lakdi,Hindi,wood
+loha,Hindi,iron
+chandi,Hindi,silver
+kaagaz,Hindi,paper
+rang,Hindi,colour
+laal,Hindi,red
+neela,Hindi,blue
+hara,Hindi,green
+peela,Hindi,yellow
+kaala,Hindi,black
+safed,Hindi,white
+gulabi,Hindi,pink
+narangi,Hindi,orange
+bhoora,Hindi,brown
+phirse,Hindi,again
+dobara,Hindi,once more
+warna,Hindi,otherwise
+balki,Hindi,rather
+isi,Hindi,this very
+usi,Hindi,that very
+kuchh,Hindi,some
+sabhi,Hindi,all
+kai,Hindi,several
+thodi,Hindi,a little
+kaafi,Hindi,quite
+itna,Hindi,this much
+utna,Hindi,that much
+jitna,Hindi,as much
+kitne,Hindi,how many
+kitni,Hindi,how much
+aise,Hindi,like this
+jaisa,Hindi,like
+waisa,Hindi,like that
+kyonki,Hindi,because
+isiliye,Hindi,therefore
+raho,Hindi,stay
+aao,Hindi,come
+baitho,Hindi,sit
+ruko,Hindi,stop
+dekhiye,Hindi,please see
+suniye,Hindi,please listen
+boliye,Hindi,please speak
+aaiye,Hindi,please come
+baithiye,Hindi,please sit
+chaliye,Hindi,let's go
+dijiye,Hindi,please give
+kijiye,Hindi,please do
+lijiye,Hindi,please take
+batayiye,Hindi,please tell
+samjhiye,Hindi,understand
+kutta,Hindi,dog
+bandh,Hindi,closed
+khula,Hindi,open
+zameen,Hindi,land
+jungle,Hindi,forest
+samundar,Hindi,sea
+taalab,Hindi,pond
+jheel,Hindi,lake
+ped,Hindi,tree
+patta,Hindi,leaf
+phool,Hindi,flower
+ghaas,Hindi,grass
+baadal,Hindi,cloud
+toofan,Hindi,storm
+kohra,Hindi,fog
+raaja,Hindi,king
+rani,Hindi,queen
+sipahi,Hindi,soldier
+chor,Hindi,thief
+neta,Hindi,leader
+janta,Hindi,public
+sarkar,Hindi,government
+kanoon,Hindi,law
+adalat,Hindi,court
+vakeel,Hindi,lawyer
+master,Hindi,teacher
+guruji,Hindi,teacher
+chhatra,Hindi,student
+shiksha,Hindi,education
+vidyalaya,Hindi,school
+khilaadi,Hindi,player
+nalli,Kannada,in
+inda,Kannada,from
+maadi,Kannada,do
+nodi,Kannada,look
+baro,Kannada,come
+sakkath,Kannada,awesome
+mattu,Kannada,and
+athava,Kannada,or
+aadre,Kannada,but
+aadaru,Kannada,even then
+andre,Kannada,that is
+antha,Kannada,that
+heege,Kannada,like this
+hange,Kannada,like that
+yavdu,Kannada,which
+yaarige,Kannada,to whom
+namge,Kannada,to us
+ninge,Kannada,to you
+avrige,Kannada,to them
+avru,Kannada,they
+ivru,Kannada,these people
+nivu,Kannada,you
+avana,Kannada,his
+avala,Kannada,her
+avara,Kannada,their
+maneli,Kannada,at home
+shaaleli,Kannada,at school
+halliyalli,Kannada,in the village
+kudiyona,Kannada,let's drink
+hogona,Kannada,let's go
+nodona,Kannada,let's see
+maadona,Kannada,let's do
+baruthini,Kannada,I will come
+hoguthini,Kannada,I will go
+maaduthini,Kannada,I will do
+nodthini,Kannada,I will see
+helthini,Kannada,I will tell
+kaaytini,Kannada,I wait
+gottaagide,Kannada,it is known
+gottaagilla,Kannada,not known
+bekittu,Kannada,was needed
+saakittu,Kannada,enough
+ellidira,Kannada,where are you
+chennagidira,Kannada,are you well
+yenaytu,Kannada,what happened
+enakku,Tamil,to me
+unakku,Tamil,to you
+avanukku,Tamil,to him
+avalukku,Tamil,to her
+namakku,Tamil,to us
+ungalukku,Tamil,to you (polite)
+ennai,Tamil,me
+unnai,Tamil,you
+avanai,Tamil,him
+avalai,Tamil,her
+naama,Tamil,we
+eppa,Tamil,when
+yenna,Tamil,what
+yaen,Tamil,why
+podhum,Tamil,enough
+pesalam,Tamil,let's talk
+pogalam,Tamil,let's go
+varalaam,Tamil,let's come
+sollalam,Tamil,let's say
+paakalam,Tamil,let's see
+saapdalam,Tamil,let's eat
+irundha,Tamil,if there is
+vandhen,Tamil,I came
+ponen,Tamil,I went
+paarthen,Tamil,I saw
+pannen,Tamil,I did
+sonnen,Tamil,I said
+kettein,Tamil,I asked
+vandhuten,Tamil,I have come
+pochu,Tamil,went
+aachu,Tamil,happened
+nadandhu,Tamil,walking
+oodu,Tamil,run
+irukkuma,Tamil,is there
+irukkaa,Tamil,is there
+illaya,Tamil,isn't it
+sariya,Tamil,right
+thappa,Tamil,wrong
+nijama,Tamil,really
+tomra,Bengali,you all
+amader,Bengali,our
+tomader,Bengali,your (pl.)
+tar,Bengali,his/her
+tader,Bengali,their
+ei,Bengali,this
+oi,Bengali,that
+je,Bengali,who
+jar,Bengali,whose
+kake,Bengali,whom
+kon,Bengali,which
+koto,Bengali,how much
+kotodin,Bengali,how long
+chhilo,Bengali,was
+chhilam,Bengali,I was
+hoyeche,Bengali,has happened
+hoyechhe,Bengali,has happened
+korechhe,Bengali,has done
+bolechhe,Bengali,has said
+gelo,Bengali,went
+gechhe,Bengali,has gone
+esechhe,Bengali,has come
+dekhechhe,Bengali,has seen
+valo,Bengali,good
+bhalobashe,Bengali,loves
+jachche,Bengali,is going
+aschhe,Bengali,is coming
+korchhe,Bengali,is doing
+bolchhe,Bengali,is saying
+khachhe,Bengali,is eating
+dekhchhe,Bengali,is seeing
+hochhe,Bengali,is happening
+bhulo,Bengali,forget
+bhulona,Bengali,don't forget
+thakbo,Bengali,will stay
+bolben,Bengali,will say
+jabe,Bengali,will go
+ashbe,Bengali,will come
+korbe,Bengali,will do
+pabo,Bengali,will get
+nebo,Bengali,will take
+debo,Bengali,will give
+janen,Bengali,you know
+aane,Hindi,common Hindi word
+aapko,Hindi,common Hindi word
+aapne,Hindi,common Hindi word
+ab,Hindi,now
+aksar,Hindi,common Hindi word
+apko,Hindi,common Hindi word
+baare,Hindi,common Hindi word
+bolne,Hindi,common Hindi word
+chalte,Hindi,common Hindi word
+de,Hindi,give
+dekhte,Hindi,common Hindi word
+dikha,Hindi,common Hindi word
+dikhao,Hindi,common Hindi word
+dono,Hindi,common Hindi word
+doston,Hindi,common Hindi word
+hamein,Hindi,common Hindi word
+hanji,Hindi,yes sir/madam
+hone,Hindi,common Hindi word
+humne,Hindi,common Hindi word
+humse,Hindi,common Hindi word
+idhar,Hindi,common Hindi word
+inhein,Hindi,common Hindi word
+inko,Hindi,common Hindi word
+inme,Hindi,common Hindi word
+inse,Hindi,common Hindi word
+ise,Hindi,common Hindi word
+isko,Hindi,common Hindi word
+isme,Hindi,common Hindi word
+isse,Hindi,common Hindi word
+jaane,Hindi,common Hindi word
+jaao,Hindi,common Hindi word
+jahaan,Hindi,common Hindi word
+kahin,Hindi,common Hindi word
+karne,Hindi,common Hindi word
+kaunsa,Hindi,common Hindi word
+kewal,Hindi,only
+khaane,Hindi,common Hindi word
+khud,Hindi,oneself
+kidhar,Hindi,common Hindi word
+kisne,Hindi,common Hindi word
+la,Hindi,bring
+le,Hindi,take
+likhne,Hindi,common Hindi word
+lo,Hindi,take (imperative)
+maine,Hindi,common Hindi word
+mat,Hindi,don't
+milne,Hindi,common Hindi word
+mujhko,Hindi,common Hindi word
+mujhse,Hindi,common Hindi word
+padhne,Hindi,common Hindi word
+peene,Hindi,common Hindi word
+rukna,Hindi,common Hindi word
+sabka,Hindi,common Hindi word
+shubhratri,Hindi,common Hindi word
+sone,Hindi,common Hindi word
+sunao,Hindi,common Hindi word
+sunne,Hindi,common Hindi word
+suprabhat,Hindi,common Hindi word
+taaki,Hindi,common Hindi word
+tarah,Hindi,manner
+teeno,Hindi,common Hindi word
+tujhko,Hindi,common Hindi word
+tumhein,Hindi,common Hindi word
+tumne,Hindi,common Hindi word
+tumse,Hindi,common Hindi word
+udhar,Hindi,common Hindi word
+unhein,Hindi,common Hindi word
+unhone,Hindi,common Hindi word
+unko,Hindi,common Hindi word
+unme,Hindi,common Hindi word
+unse,Hindi,common Hindi word
+use,Hindi,common Hindi word
+usko,Hindi,common Hindi word
+usme,Hindi,common Hindi word
+usne,Hindi,common Hindi word
+usse,Hindi,common Hindi word
+wahaan,Hindi,common Hindi word
+wale,Hindi,common Hindi word
+yahaan,Hindi,common Hindi word
+dekhne,Hindi,to see (oblique)
+rehne,Hindi,to stay (oblique)
+lagne,Hindi,to feel (oblique)
+puchne,Hindi,to ask (oblique)
+kehne,Hindi,to say (oblique)
+batane,Hindi,to tell (oblique)
+bhejne,Hindi,to send (oblique)
+rakhne,Hindi,to keep (oblique)
+kholne,Hindi,to open (oblique)
+uthne,Hindi,to get up (oblique)
+baithne,Hindi,to sit (oblique)
+chalne,Hindi,to walk (oblique)
+khelne,Hindi,to play (oblique)
+naachne,Hindi,to dance (oblique)
+gaane,Hindi,to sing (oblique)
+hasne,Hindi,to laugh (oblique)
+rone,Hindi,to cry (oblique)
+bhoolne,Hindi,to forget (oblique)
+sochne,Hindi,to think (oblique)
+samajhne,Hindi,to understand (oblique)
+chahne,Hindi,to want (oblique)
+sakne,Hindi,to be able (oblique)
+chali,Hindi,went (fem.)
+baithi,Hindi,sat (fem.)
+uthi,Hindi,got up (fem.)
+chale,Hindi,went (pl.)
+baitha,Hindi,sat
+utha,Hindi,got up
+khada,Hindi,standing
+ruka,Hindi,stopped
+ruki,Hindi,stopped (fem.)
+laga,Hindi,felt
+lagi,Hindi,felt (fem.)
+lage,Hindi,felt (pl.)
+bhula,Hindi,forgot
+bhuli,Hindi,forgot (fem.)
+soyi,Hindi,slept (fem.)
+hansa,Hindi,laughed
+hansi,Hindi,laughed (fem.)
+roya,Hindi,cried
+royi,Hindi,cried (fem.)
+bhaga,Hindi,ran away
+bhagi,Hindi,ran away (fem.)
+waah,Hindi,wow
+arre,Hindi,hey
+oye,Hindi,hey
+haye,Hindi,alas
+uff,Hindi,ugh
+shabash,Hindi,well done
+bijli,Hindi,electricity
+gulab,Hindi,rose
+dekhta,Hindi,sees
+dekhti,Hindi,sees (fem.)
+sunta,Hindi,hears
+sunti,Hindi,hears (fem.)
+bolta,Hindi,speaks
+bolti,Hindi,speaks (fem.)
+chalta,Hindi,walks
+chalti,Hindi,walks (fem.)
+khelta,Hindi,plays
+khelti,Hindi,plays (fem.)
+padhta,Hindi,reads
+padhti,Hindi,reads (fem.)
+likhta,Hindi,writes
+likhti,Hindi,writes (fem.)
+rehti,Hindi,stays (fem.)
+milta,Hindi,meets
+milti,Hindi,meets (fem.)
+lagta,Hindi,seems
+lagti,Hindi,seems (fem.)
+samajhta,Hindi,understands
+samajhti,Hindi,understands (fem.)
+dekhunga,Hindi,I will see
+dekhungi,Hindi,I will see (fem.)
+bolunga,Hindi,I will speak
+bolungi,Hindi,I will speak (fem.)
+chalunga,Hindi,I will walk
+milunga,Hindi,I will meet
+milungi,Hindi,I will meet (fem.)
+aaungi,Hindi,I will come (fem.)
+jaungi,Hindi,I will go (fem.)
