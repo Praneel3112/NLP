@@ -2,22 +2,23 @@
 
 import re
 import threading
+import time
 import traceback
 from typing import Any
 
 from src.detection import levenshtein as editdistance
 import torch
 
+from src.correction.context_ranker import ContextRanker
 from src.correction.model_store import load_or_train
 from src.correction.pipeline import LEXICON
 from src.correction.rnn_baseline import Seq2SeqRNN
-from src.correction.transformer_models import TransformerCorrector
-from src.detection.edit_distance import EditDistanceDetector
+from src.detection.edit_distance import EditDistanceDetector, gru_distance_limit
 from src.emotion.detector import EmotionDetector
 from src.lang_id.detector import LanguageIdentifier
 from src.preprocessing.slang_normalizer import SlangNormalizer
 
-TRAINING_EPOCHS = 100
+TRAINING_EPOCHS = 25  # GRU training epochs (see model_store.py)
 _EDGE_PUNCTUATION = re.compile(r"^\W+|\W+$")
 _LONG_REPEAT = re.compile(r"(.)\1{2,}")
 
@@ -34,7 +35,7 @@ class CorrectionService:
             "error": None,
             "training_examples": 0,
             "phase2_loss": None,
-            "phase3_loss": None,
+            "phase3_model": None,
             "emotion_accuracy": None,
             "emotion_macro_f1": None,
             "lexicon_size": len(LEXICON),
@@ -47,7 +48,7 @@ class CorrectionService:
         self._emotion = EmotionDetector()
         self._emotion_ready = False
         self._rnn: Seq2SeqRNN | None = None
-        self._transformer: TransformerCorrector | None = None
+        self._ranker = ContextRanker(list(LEXICON))
 
     def warm_up(self) -> None:
         """Train both models once, reporting progress and any startup failure."""
@@ -61,29 +62,8 @@ class CorrectionService:
                 emotion_macro_f1=emotion_metrics["comparison"]["hybrid"]["macro_f1"],
             )
 
-            self._update_state(stage="Loading saved Phase 2/3 models")
-            models = load_or_train(
-                TRAINING_EPOCHS,
-                on_stage=lambda stage: self._update_state(stage=stage),
-            )
-            rnn = models["gru"]
-            transformer = models["transformer"]
-            phase2_loss = models["gru_loss"]
-            phase3_loss = models["transformer_loss"]
-            self._update_state(
-                training_examples=models["training_examples"],
-                lexicon_size=len(LEXICON),
-                models_loaded_from_disk=models["loaded_from_disk"],
-            )
-
-            self._rnn = rnn
-            self._transformer = transformer
-            self._update_state(
-                status="ready",
-                stage="Both correction models are ready",
-                phase2_loss=round(phase2_loss, 4),
-                phase3_loss=round(phase3_loss, 4),
-            )
+            self.load_correction_models()
+            self._update_state(status="ready", stage="All models are ready")
         except Exception as error:
             traceback.print_exc()
             self._update_state(
@@ -91,6 +71,29 @@ class CorrectionService:
                 stage="Model training failed",
                 error=str(error),
             )
+
+    def load_correction_models(self) -> None:
+        """Load (or train once) the Phase 2 GRU and load the Phase 3 XLM-RoBERTa ranker."""
+        self._update_state(stage="Loading saved Phase 2 GRU")
+        models = load_or_train(TRAINING_EPOCHS, on_stage=lambda stage: self._update_state(stage=stage))
+        self._rnn = models["gru"]
+        self._update_state(
+            training_examples=models["training_examples"],
+            lexicon_size=len(LEXICON),
+            models_loaded_from_disk=models["loaded_from_disk"],
+            phase2_loss=round(models["gru_loss"], 4),
+        )
+
+        self._update_state(stage="Loading XLM-RoBERTa for Phase 3 (first run downloads about 1 GB)")
+        loaded = self._ranker.load()
+        if not loaded:
+            print(f"XLM-RoBERTa could not be loaded: {self._ranker.load_error}", flush=True)
+        self._update_state(phase3_model=self._ranker.model_name if loaded else "unavailable")
+
+    def run_phases(self, text: str) -> dict[str, Any]:
+        """Run only the correction phases (language filter + Phases 1-3) on ``text``."""
+        with self._inference_lock:
+            return self._correct_code_mixed(text)
 
     def get_status(self) -> dict[str, Any]:
         with self._state_lock:
@@ -107,7 +110,7 @@ class CorrectionService:
             raise ValueError("Each word must be 120 characters or fewer.")
 
         with self._inference_lock:
-            if self._rnn is None or self._transformer is None:
+            if self._rnn is None:
                 status = self.get_status()
                 if status["status"] == "error":
                     raise RuntimeError(status["error"] or "Model training failed.")
@@ -163,12 +166,13 @@ class CorrectionService:
 
         indic_text = " ".join(token for token, is_en in zip(tokens, english) if not is_en)
         if indic_text:
-            indic = self._correct_phases(indic_text)
+            indic = self._correct_phases(indic_text, context=(tokens, english))
         else:
             indic = {
                 "phase1": "", "phase1_guided": "", "phase1_steps": [],
                 "phase2": "", "phase2_steps": [], "phase3": "",
                 "phase3_trace": {"model_output": None, "decision": "", "output": ""},
+                "timings_ms": {"phase1": 0.0, "phase2": 0.0, "phase3": 0.0},
             }
 
         def splice(corrected: str) -> str:
@@ -209,10 +213,20 @@ class CorrectionService:
                 "output": splice(indic["phase3"]),
             },
             "languages": languages,
+            "timings_ms": indic["timings_ms"],
         }
 
-    def _correct_phases(self, text: str) -> dict[str, Any]:
-        """Phases 1-3, unchanged from the CIE3 version. Caller holds the inference lock."""
+    def _correct_phases(
+        self,
+        text: str,
+        context: tuple[list[str], list[bool]] | None = None,
+    ) -> dict[str, Any]:
+        """Phases 1-3 on Indic words. Caller holds the inference lock.
+
+        ``context`` is the full sentence (all tokens, and which of them are English) so the
+        Phase 3 transformer can read English words around the Indic ones.
+        """
+        started = time.perf_counter()
         phase1, errors = self._edit_detector.process_sentence(text)
         errors_by_word = {item["original"]: item for item in errors}
         phase1_steps: list[dict[str, Any]] = []
@@ -260,6 +274,7 @@ class CorrectionService:
                     }
                 )
 
+        phase1_done = time.perf_counter()
         phase1_guided = " ".join(guided_words)
         phase2_words: list[str] = []
         phase2_steps: list[dict[str, Any]] = []
@@ -281,10 +296,10 @@ class CorrectionService:
                 model_distance = (
                     editdistance.eval(word.casefold(), model_word)
                     if model_word in lexicon
-                    else MAX_LEXICON_DISTANCE + 1
+                    else 10**6
                 )
 
-                if model_distance <= MAX_LEXICON_DISTANCE:
+                if model_distance <= gru_distance_limit(word):
                     corrected = model_word
                     decision = "Accepted GRU output within lexicon distance"
                 elif is_error and distance <= MAX_LEXICON_DISTANCE:
@@ -304,8 +319,29 @@ class CorrectionService:
                 }
             )
 
+        phase2_done = time.perf_counter()
         phase2 = " ".join(phase2_words)
-        phase3 = self._transformer.correct_sentence(phase1_guided)
+
+        # Phase 3: rank each ambiguous word's candidates in the context of the whole sentence.
+        guided_tokens = phase1_guided.split()
+        if context is None:
+            tokens, correctable = guided_tokens, [True] * len(guided_tokens)
+            extra = {index: [word] for index, word in enumerate(phase2_words)}
+        else:
+            tokens, correctable, extra = [], [], {}
+            indic_index = 0
+            for token, is_english in zip(*context):
+                if is_english:
+                    tokens.append(token)
+                    correctable.append(False)
+                else:
+                    extra[len(tokens)] = [phase2_words[indic_index]]
+                    tokens.append(guided_tokens[indic_index])
+                    correctable.append(True)
+                    indic_index += 1
+        ranked = self._ranker.correct_tokens(tokens, correctable, extra)
+        phase3 = " ".join(word for word, keep in zip(ranked, correctable) if keep)
+        phase3_done = time.perf_counter()
 
         return {
             "phase1": phase1,
@@ -314,7 +350,12 @@ class CorrectionService:
             "phase2": phase2,
             "phase2_steps": phase2_steps,
             "phase3": phase3,
-            "phase3_trace": dict(self._transformer.last_trace),
+            "phase3_trace": dict(self._ranker.last_trace),
+            "timings_ms": {
+                "phase1": round((phase1_done - started) * 1000, 2),
+                "phase2": round((phase2_done - phase1_done) * 1000, 2),
+                "phase3": round((phase3_done - phase2_done) * 1000, 2),
+            },
         }
 
     def _update_state(self, **updates: Any) -> None:

@@ -7,11 +7,19 @@ const STAGES = [
   { step: "00", title: "Slang normalizer", text: "Expands short forms (bht → bahut, plz → please) and separates emoji." },
   {
     step: "01",
-    title: "Edit distance",
-    text: "English words are skipped by language ID; Indic words are matched against a 279-word lexicon.",
+    title: "Edit distance + G2P",
+    text: "English words are skipped by language ID. Indic words are matched to a 279-word lexicon by edit distance and by sound.",
   },
-  { step: "02", title: "Character GRU", text: "A seq2seq RNN trained on 1,117 noisy-to-clean pairs corrects words letter by letter." },
-  { step: "03", title: "Character Transformer", text: "Corrects the whole sentence, with a lexicon safeguard." },
+  {
+    step: "02",
+    title: "Bi-GRU + attention",
+    text: "A 3-layer bidirectional GRU with Bahdanau attention, trained on 1,117 noisy-to-clean pairs, fixes words letter by letter.",
+  },
+  {
+    step: "03",
+    title: "XLM-RoBERTa ranker",
+    text: "A pretrained multilingual transformer picks the candidate that fits the whole sentence best.",
+  },
 ]
 
 const COMPARISON = [

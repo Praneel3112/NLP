@@ -17,10 +17,9 @@ function shortStage(state: ConnectionState, stage: string): string {
   if (state === "error") return "Model training failed"
   if (state === "ready") return "All models ready"
   if (/emotion/i.test(stage)) return "Training emotion model…"
-  if (/loading saved/i.test(stage)) return "Loading saved models…"
-  if (/first run/i.test(stage)) return "First run: training GRU (~15 min)…"
-  if (/phase 2/i.test(stage)) return "Training GRU · Phase 2…"
-  if (/phase 3/i.test(stage)) return "Training Transformer · Phase 3…"
+  if (/xlm/i.test(stage)) return "Loading XLM-RoBERTa · Phase 3…"
+  if (/loading saved/i.test(stage)) return "Loading saved GRU…"
+  if (/training phase 2/i.test(stage)) return "First run: training Bi-GRU…"
   return "Preparing models…"
 }
 

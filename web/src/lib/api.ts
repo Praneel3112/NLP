@@ -8,7 +8,7 @@ export interface BackendStatus {
   error: string | null
   training_examples: number
   phase2_loss: number | null
-  phase3_loss: number | null
+  phase3_model: string | null
   emotion_accuracy: number | null
   emotion_macro_f1: number | null
 }
@@ -74,6 +74,33 @@ export interface Phase2Step {
   decision: string
 }
 
+export interface RankedCandidate {
+  word: string
+  score: number
+  pieces: number
+}
+
+export interface Phase3Ranking {
+  position: number
+  token: string
+  chosen: string
+  candidates: RankedCandidate[]
+}
+
+export interface Phase3Trace {
+  model_output: string | null
+  decision: string
+  output: string
+  model?: string | null
+  rankings?: Phase3Ranking[]
+}
+
+export interface PhaseTimings {
+  phase1: number
+  phase2: number
+  phase3: number
+}
+
 export interface AnalysisResult {
   input: string
   phase0: Phase0Result
@@ -84,7 +111,8 @@ export interface AnalysisResult {
   phase2: string
   phase2_steps: Phase2Step[]
   phase3: string
-  phase3_trace: { model_output: string | null; decision: string; output: string }
+  phase3_trace: Phase3Trace
+  timings_ms?: PhaseTimings
 }
 
 export interface ScorePair {

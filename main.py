@@ -1,19 +1,44 @@
+"""Command-line run of the whole project: every phase, the metrics, and emotion detection."""
+
+import warnings
+
+from src.correction.pipeline import LEXICON
+from src.correction.service import TRAINING_EPOCHS, CorrectionService
+from src.emotion.detector import EmotionDetector
+from src.evaluation import benchmark
+from src.evaluation.metrics import EvaluationSuite
+from src.lang_id.detector import LanguageIdentifier
 from src.preprocessing.cleaner import TextCleaner
 from src.preprocessing.noise_generator import NoiseGenerator
-from src.lang_id.detector import LanguageIdentifier
-from src.detection.edit_distance import EditDistanceDetector
-from src.correction.model_store import load_or_train
-from src.correction.pipeline import LEXICON
-from src.evaluation.metrics import EvaluationSuite
-from src.emotion.detector import EmotionDetector
 from src.preprocessing.slang_normalizer import SlangNormalizer
+
+warnings.filterwarnings("ignore", message=".*nested tensors.*")
+
+RULE = "-" * 110
+
+
+def print_metric_table(title: str, rows: dict[str, dict]) -> None:
+    print(f"\n  {title}")
+    print("  " + "=" * 124)
+    print(
+        f"  {'SYSTEM':<34} | {'CER':>7} | {'WER':>7} | {'BLEU':>7} | {'EM %':>7} | "
+        f"{'PREC':>7} | {'RECALL':>7} | {'F1':>7} | {'SEM SIM':>7}"
+    )
+    print("  " + "=" * 124)
+    for label, m in rows.items():
+        print(
+            f"  {label:<34} | {m['CER']:>7.4f} | {m['WER']:>7.4f} | {m['BLEU']:>7.4f} | "
+            f"{m['Exact_Match (%)']:>7.2f} | {m['Precision']:>7.4f} | {m['Recall']:>7.4f} | "
+            f"{m['F1']:>7.4f} | {m['Semantic_Sim']:>7.4f}"
+        )
+    print("  " + "=" * 124)
 
 
 def main():
     title = "TRANSLITERATION ERROR DETECTION AND CORRECTION"
-    print("=" * 96)
-    print(f"{title:^96}")
-    print("=" * 96)
+    print("=" * 110)
+    print(f"{title:^110}")
+    print("=" * 110)
 
     reference_sentences = [
         "namaste aap kaise ho",
@@ -22,196 +47,111 @@ def main():
         "amar naam suman",
     ]
 
-    lexicon = list(LEXICON)
-
     cleaner = TextCleaner()
     noise_gen = NoiseGenerator(seed=42)
-
     clean_references = [cleaner.clean_text(s) for s in reference_sentences]
     noisy_sentences = [noise_gen.generate_noisy_text(s) for s in clean_references]
 
     print("STEP 1 - LANGUAGE IDENTIFICATION")
-    print("-" * 96)
+    print(RULE)
     lang_id = LanguageIdentifier()
-    sample_tags = lang_id.segregate_code_mixed_tokens("namaste good morning aap kaise ho")
-    print("  Sample: namaste good morning aap kaise ho")
+    sample = "namaste good morning aap kaise ho"
+    print(f"  Sample: {sample}")
     print("  Tagged tokens:")
-    for tagged_token in sample_tags:
+    for tagged_token in lang_id.segregate_code_mixed_tokens(sample):
         print(f"    {tagged_token['token']:<12} -> {tagged_token['label']}")
 
     print("\nSTEP 2 - TEST DATA")
-    print("-" * 96)
+    print(RULE)
     for idx, (ref, noisy) in enumerate(zip(clean_references, noisy_sentences), 1):
         print(f"  Example {idx}")
         print(f"    Clean reference : {ref}")
         print(f"    Noisy input     : {noisy}")
 
     print("\nSTEP 3 - CORRECTION PHASES")
-    print("-" * 96)
-
-    print("  PHASE 1 - Rule-based edit-distance correction")
-    edit_detector = EditDistanceDetector(lexicon=lexicon)
-    phase1_steps = []
-    edit_outputs = []
-    phase1_guided_inputs = []
-    for sentence in noisy_sentences:
-        corrected, error_logs = edit_detector.process_sentence(sentence)
-        edit_outputs.append(corrected)
-        errors_by_word = {item["original"]: item for item in error_logs}
-        steps = []
-        guided_words = []
-        for word in sentence.split():
-            candidate, is_error, distance = edit_detector.detect_and_correct_word(word)
-            if is_error and distance <= 1:
-                guided_words.append(candidate)
-                error = errors_by_word.get(word)
-                candidates = (
-                    ", ".join(error["candidates"])
-                    if error is not None
-                    else candidate
-                )
-                steps.append(
-                    f"{word} -> {candidate} (high confidence; edit distance "
-                    f"{distance}; candidates: {candidates})"
-                )
-            elif not is_error:
-                guided_words.append(word)
-                steps.append(f"{word} -> {word} (already in lexicon)")
-            else:
-                guided_words.append(word)
-                error = errors_by_word.get(word)
-                steps.append(
-                    f"{word} -> {error['corrected']} "
-                    f"(not passed downstream; edit distance "
-                    f"{error['edit_distance']}; "
-                    f"candidates: {', '.join(error['candidates'])})"
-                    if error is not None
-                    else f"{word} -> {word} (no high-confidence correction)"
-                )
-        phase1_steps.append(steps)
-        phase1_guided_inputs.append(" ".join(guided_words))
-
-    print("  PHASE 2 - Trainable character-level GRU Seq2Seq")
-    # Same models as the web app: trained once (100 epochs) and reloaded from models/.
-    models = load_or_train(100, on_stage=lambda stage: print(f"    {stage}"))
-    rnn_model = models["gru"]
-    transformer_model = models["transformer"]
-    source_note = "loaded from models/" if models["loaded_from_disk"] else "trained now and saved to models/"
+    print(RULE)
+    service = CorrectionService()
+    print(f"  Lexicon: {len(LEXICON)} Romanized Hindi/Kannada/Tamil/Bengali words (data/lexicon.csv).")
+    service.load_correction_models()
+    status = service.get_status()
+    source = "loaded from models/" if status["models_loaded_from_disk"] else "trained now and saved to models/"
     print(
-        f"    {len(LEXICON)}-word lexicon, {models['training_examples']} noisy-to-clean pairs, "
-        f"100 epochs ({source_note}); final loss: {models['gru_loss']:.4f}."
+        f"  PHASE 1 - edit distance (<= 2) + phonetic G2P matching against the lexicon\n"
+        f"  PHASE 2 - 3-layer Bi-GRU with Bahdanau attention: {status['training_examples']} noisy-to-clean "
+        f"pairs, {TRAINING_EPOCHS} epochs, batch 64 ({source}; final loss {status['phase2_loss']})\n"
+        f"  PHASE 3 - XLM-RoBERTa context ranking: {status['phase3_model']}"
     )
-    rnn_outputs = []
-    phase2_steps = []
-    for sentence in phase1_guided_inputs:
-        words = sentence.split()
-        corrections = [rnn_model.predict_word(word) for word in words]
-        rnn_outputs.append(" ".join(corrections))
-        phase2_steps.append(
-            [
-                f"{word} -> {correction} (character encoder + autoregressive GRU decoder)"
-                for word, correction in zip(words, corrections)
-            ]
-        )
-
-    print("  PHASE 3 - Trainable character-level Transformer with lexicon safeguard")
-    print(f"    Final loss: {models['transformer_loss']:.4f}.")
-    transformer_outputs = []
-    phase3_steps = []
-    for sentence in phase1_guided_inputs:
-        transformer_outputs.append(transformer_model.correct_sentence(sentence))
-        phase3_steps.append(transformer_model.last_trace.copy())
-    if transformer_model.fallback_count:
-        print(
-            "    The lexicon safeguard corrected out-of-lexicon outputs in "
-            f"{transformer_model.fallback_count} example(s)."
-        )
+    results = [service.run_phases(noisy) for noisy in noisy_sentences]
 
     print("\nPHASE OUTPUTS - SIDE-BY-SIDE COMPARISON")
-    print("-" * 96)
-    for idx, (reference, noisy, phase1, phase2, phase3) in enumerate(
-        zip(
-            clean_references,
-            noisy_sentences,
-            edit_outputs,
-            rnn_outputs,
-            transformer_outputs,
-        ),
-        1,
-    ):
+    print(RULE)
+    for idx, (reference, noisy, result) in enumerate(zip(clean_references, noisy_sentences, results), 1):
         print(f"  Example {idx}")
         print(f"    Reference : {reference}")
         print(f"    Noisy     : {noisy}")
-        print(f"    Phase 1   : {phase1}")
-        print(f"    Phase 2   : {phase2}")
-        print(f"    Phase 3   : {phase3}")
+        print(f"    Phase 1   : {result['phase1']}")
+        print(f"    Phase 2   : {result['phase2']}")
+        print(f"    Phase 3   : {result['phase3']}")
 
     print("\nDETAILED PHASE TRACE - HOW EACH OUTPUT WAS PRODUCED")
-    print("-" * 96)
-    for idx, (sentence, guided_input, steps1, steps2, step3) in enumerate(
-        zip(
-            noisy_sentences,
-            phase1_guided_inputs,
-            phase1_steps,
-            phase2_steps,
-            phase3_steps,
-        ),
-        1,
-    ):
-        print(f"  Example {idx}: {sentence}")
-        print("    Phase 1 - lexicon lookup and edit distance:")
-        for step in steps1:
-            print(f"      {step}")
-        print(f"      Downstream input: {guided_input}")
-        print("    Phase 2 - character-level RNN:")
-        print("      Input characters -> encoder states -> greedy decoder -> output characters")
-        for step in steps2:
-            print(f"      {step}")
-        print("    Phase 3 - Transformer generation and output validation:")
-        model_output = step3["model_output"]
-        if model_output is None:
-            print("      Raw Transformer output: unavailable")
-        else:
-            print(f"      Raw Transformer output: {model_output}")
-        print(f"      Decision       : {step3['decision']}")
-        print(f"      Final output   : {step3['output']}")
+    print(RULE)
+    for idx, (noisy, result) in enumerate(zip(noisy_sentences, results), 1):
+        print(f"  Example {idx}: {noisy}")
+        print("    Phase 1 - lexicon lookup, edit distance and G2P:")
+        for step in result["phase1_steps"]:
+            print(f"      {step['original']} -> {step['corrected']} ({step['decision']}; edit distance {step['distance']})")
+        print("    Phase 2 - Bi-GRU:")
+        for step in result["phase2_steps"]:
+            print(f"      {step['original']} -> {step['model_output']} ({step['decision']})")
+        print("    Phase 3 - XLM-RoBERTa ranking:")
+        print(f"      {result['phase3_trace']['decision']}")
+        for ranking in result["phase3_trace"].get("rankings", []):
+            listed = ", ".join(f"{c['word']} ({c['score']:.1f})" for c in ranking["candidates"])
+            print(f"      {ranking['token']}: {listed}  ->  {ranking['chosen']}")
 
     print("\nSTEP 4 - EVALUATION METRICS")
-    print("-" * 96)
-    eval_suite = EvaluationSuite()
-
-    noisy_metrics = eval_suite.evaluate_all(clean_references, noisy_sentences)
-    edit_metrics = eval_suite.evaluate_all(clean_references, edit_outputs)
-    rnn_metrics = eval_suite.evaluate_all(clean_references, rnn_outputs)
-    trans_metrics = eval_suite.evaluate_all(clean_references, transformer_outputs)
-
-    table_width = 110
-    print("=" * table_width)
-    print(
-        f"{'SYSTEM':<50} | {'CER':>8} | {'WER':>8} | {'BLEU':>8} | "
-        f"{'EXACT MATCH %':>13} | {'SEM SIM':>8}"
+    print(RULE)
+    suite = EvaluationSuite()
+    demo_pairs = list(zip(clean_references, noisy_sentences))
+    demo_outputs = {phase: [r[phase] for r in results] for phase in benchmark.PHASES}
+    labels = {
+        "Noisy input": "Noisy input baseline",
+        "phase1": "Phase 1 - edit distance + G2P",
+        "phase2": "Phase 2 - Bi-GRU + attention",
+        "phase3": "Phase 3 - XLM-RoBERTa ranker",
+    }
+    demo_scores = benchmark.score(suite, demo_pairs, demo_outputs)
+    print_metric_table(
+        f"A. The {len(demo_pairs)} demo sentences above",
+        {labels[key]: value for key, value in demo_scores.items()},
     )
-    print("=" * table_width)
-    metric_rows = [
-        ("Noisy input baseline", noisy_metrics),
-        ("Phase 1 - Edit distance", edit_metrics),
-        ("Phase 2 - Trained character-level GRU Seq2Seq", rnn_metrics),
-        (
-            "Phase 3 - Trained character Transformer + safeguard",
-            trans_metrics,
-        ),
-    ]
-    for label, metrics in metric_rows:
-        print(
-            f"{label:<50} | {metrics['CER']:>8.4f} | {metrics['WER']:>8.4f} | "
-            f"{metrics['BLEU']:>8.4f} | {metrics['Exact_Match (%)']:>13.2f} | "
-            f"{metrics['Semantic_Sim']:>8.4f}"
-        )
-    print("=" * table_width)
-    print("Metric guide: lower CER/WER is better; higher BLEU, exact match, and semantic similarity are better.")
+
+    test_sentences = benchmark.load_eval_sentences("test")
+    test_pairs = benchmark.noisy_pairs(test_sentences)
+    run = benchmark.run_pipeline(service, test_pairs)
+    test_scores = benchmark.score(suite, test_pairs, run["outputs"])
+    print_metric_table(
+        f"B. Held-out benchmark: {len(test_sentences)} sentences x {benchmark.VARIANTS_PER_SENTENCE} fresh noisy "
+        f"versions = {len(test_pairs)} test sentences (data/eval_sentences.csv, 'test' split)",
+        {labels[key]: value for key, value in test_scores.items()},
+    )
+    latency = run["latency_ms"]
+    print(
+        f"\n  Latency on this machine (CPU, {len(test_pairs)} sentences): "
+        f"Phase 1 {latency['phase1']:.1f} ms | Phase 2 {latency['phase2']:.1f} ms | "
+        f"Phase 3 {latency['phase3']:.1f} ms | total {latency['total']:.1f} ms per sentence"
+    )
+    print(
+        "\n  Metric guide: lower CER/WER is better; higher BLEU, exact match, precision, recall, "
+        "F1 and semantic similarity are better."
+    )
+    print(
+        "  Precision/recall/F1 are token-level: a true positive is a wrong input word that the system "
+        "corrected exactly;\n  a false positive is a word the system changed into something wrong."
+    )
 
     print("\nSTEP 5 - SLANG NORMALIZATION (PHASE 0) AND EMOTION DETECTION")
-    print("-" * 96)
+    print(RULE)
     normalizer = SlangNormalizer()
     emotion_detector = EmotionDetector()
     emotion_metrics = emotion_detector.train()
@@ -230,6 +170,7 @@ def main():
         print(f"    Phase 0  : {phase0['normalized']}")
         print(f"    Emotion  : {emotion['label']} ({emotion['confidence']:.0%}, {emotion['method']}, intensity {emotion['intensity']})")
         print(f"    Evidence : {cues}")
+
     print("\nPipeline completed successfully.")
 
 

@@ -2,7 +2,8 @@
 
 This repository contains a Python NLP pipeline for Romanized Indic text:
 language identification, a slang normalizer (Phase 0), lexicon/edit-distance
-correction, character-level GRU and Transformer correction, hybrid emotion
+correction with phonetic matching, a 3-layer Bi-GRU with attention, XLM-RoBERTa
+context ranking, hybrid emotion
 detection from emoji, slang and code-mixed words, and evaluation metrics.
 See `PLAN.md` for a plain-language overview.
 
@@ -59,13 +60,27 @@ trained on `data/emotion_dataset.csv`) trains first, in about two seconds.
 
 The correction lexicon is `data/lexicon.csv`: 279 common Romanized Hindi,
 Kannada, Tamil and Bengali words with their language and meaning (the first 13
-are the original CIE3 sample words). Phase 2 (GRU) and Phase 3 (Transformer) are
-trained for 100 epochs on 1,117 noisy-to-clean pairs generated from it, on one
-CPU thread. Training takes about 15 minutes, so the trained models are saved in
-`models/` and reloaded in seconds on later starts. Each checkpoint stores a
-fingerprint of its training data and settings; if you edit the lexicon, the
-models retrain automatically on the next start. `main.py` uses the same saved
-models.
+are the original CIE3 sample words).
+
+- **Phase 1** matches words to the lexicon by edit distance (at most 2) and by sound
+  (a grapheme-to-phoneme code), which also rescues heavily distorted words.
+- **Phase 2** is a 3-layer bidirectional GRU encoder with a one-layer GRU decoder and
+  Bahdanau attention (64-d embeddings, 256-d hidden states). It is trained for 25
+  epochs, batch size 64, Adam with learning rate 0.001, on 1,117 noisy-to-clean pairs
+  generated from the lexicon, with a fixed seed. Training takes about three minutes
+  on one CPU thread, so the model is saved in `models/` and reloaded in seconds; its
+  checkpoint stores a fingerprint of the training data and settings, so editing the
+  lexicon or the noise engine retrains it automatically.
+- **Phase 3** uses the pretrained `xlm-roberta-base` model (not fine-tuned). For each
+  ambiguous word it scores the candidate spellings from Phases 1 and 2 by how well
+  they fit the rest of the sentence. The first start downloads the model (about 1 GB,
+  cached afterwards in your Hugging Face cache); if it cannot be loaded the app still
+  runs and Phase 3 falls back to the Phase 1/2 suggestions.
+
+`python main.py` prints the metrics for all phases (CER, WER, BLEU, exact match,
+precision, recall, F1, semantic similarity, latency) on the demo sentences and on a
+held-out benchmark (`data/eval_sentences.csv`). `REPORT_UPDATES.md` lists the numbers
+and the report statements that depend on them.
 
 The models run on CPU and need PyTorch, which is installed as a dependency of
 `sentence-transformers` in `requirements.txt`. Startup may take a while. If
@@ -105,7 +120,8 @@ appropriate production protections.
   separation).
 - `src/emotion/` holds the emotion lexicons, rule scorer, trained classifier and
   hybrid detector.
-- `src/correction/model_store.py` trains Phases 2/3 once and reloads them from `models/`.
+- `src/correction/model_store.py` trains the Phase 2 GRU once and reloads it from `models/`.
+- `src/correction/context_ranker.py` is Phase 3 (XLM-RoBERTa candidate ranking).
 - `src/correction/pipeline.py` loads `data/lexicon.csv` and builds the deterministic
   training-pair generation between the CLI and web backend.
 

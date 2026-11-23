@@ -13,8 +13,8 @@ The text goes through three phases:
 | Phase | What it does | How |
 |---|---|---|
 | **Phase 1** | Finds likely spelling mistakes and fixes the easy ones | Edit distance against a word list (lexicon) |
-| **Phase 2** | Fixes words one character at a time | Character-level GRU (an RNN) that we train ourselves |
-| **Phase 3** | Fixes the whole sentence | Character-level Transformer, with a lexicon safeguard |
+| **Phase 2** | Fixes words one character at a time | 3-layer bidirectional GRU with attention that we train ourselves |
+| **Phase 3** | Chooses the best fix using the whole sentence | Pretrained XLM-RoBERTa ranks the candidate spellings |
 
 The website is plain HTML, CSS and JavaScript, served by `server.py`.
 
@@ -48,7 +48,7 @@ We rebuild the page in **React + Tailwind + Cult UI components**, with animated,
 
 ### 🔒 What does NOT change
 - **The Phase 1, 2 and 3 correction logic stays exactly the same.** Emotion detection runs **alongside** correction, not inside it.
-- The emotion dictionary includes Hindi and other Indic emotion words such as *khush*, *gussa* and *dukhi*. This only helps detect emotions. **It never changes the correction word list, the GRU or the Transformer.**
+- The emotion dictionary includes Hindi and other Indic emotion words such as *khush*, *gussa* and *dukhi*. This only helps detect emotions. **It never changes the correction word list, the GRU or the XLM-RoBERTa ranker.**
 - If your sentence has no slang and no emoji, Phase 0 passes it through unchanged, so Phases 1 to 3 give **the same output as before**. A test checks this.
 
 ---
@@ -86,7 +86,7 @@ We rebuild the page in **React + Tailwind + Cult UI components**, with animated,
 ## 4. How the new UI will look
 
 1. **Hero section:** a Cult UI dithering shader background, the title "Translit Lab", a one-line description and badges for the 4 languages.
-2. **Live status pill** (Cult UI *Dynamic Island*): shows what the backend is doing, such as *Training emotion model → Training GRU → Training Transformer → Ready*.
+2. **Live status pill** (Cult UI *Dynamic Island*): shows what the backend is doing, such as *Training emotion model → Loading GRU → Loading XLM-RoBERTa → Ready*.
 3. **Input card:** a text box, character counter, example buttons such as `bht gussa aa raha h 😡😡` and an animated **Analyze** button.
 4. **Results:** animated tabs.
    - **Emotion:** a big emoji, the emotion name, an animated confidence %, a bar for every emotion, an intensity badge and evidence chips (😡 → anger, ~~khush~~ negated).
@@ -167,8 +167,9 @@ Run the tests with `python -m unittest discover -s tests -v`.
 - ✅ Connected to `service.py`, `server.py` and `main.py` (new Step 5)
 - ✅ New React + Cult UI frontend in `web/`
 - ✅ **Code-mixed correction:** the language identifier now sends English words around Phases 1–3. Before, "how are you" became "ho amar ho".
-- ✅ **Bigger lexicon:** 13 → 279 common words (Hindi, Kannada, Tamil, Bengali) in `data/lexicon.csv`, each with its language and meaning. The GRU and Transformer train once (100 epochs, about 15 minutes) on 1,117 examples and are saved in `models/`, so later starts take seconds.
-- ✅ 28 tests passing (4 original + 24 new)
+- ✅ **Bigger lexicon:** 13 → 279 common words (Hindi, Kannada, Tamil, Bengali) in `data/lexicon.csv`, each with its language and meaning. The GRU trains once (25 epochs, about 3 minutes) on 1,117 examples and is saved in `models/`, so later starts take seconds.
+- ✅ **Report alignment (branch `report-aligned`):** bidirectional GRU with the report's sizes and settings, phonetic G2P matching in Phase 1, XLM-RoBERTa context ranking in Phase 3, precision/recall/F1, wider noise engine, measured latency. Numbers are in `REPORT_UPDATES.md`.
+- ✅ 52 tests passing
 
 **Results on 84 unseen test sentences:**
 
@@ -183,7 +184,7 @@ Run the tests with `python -m unittest discover -s tests -v`.
 ## 9. Viva talking points 🎤
 
 - **Why split by language before correcting?** Code-mixed text has English words that aren't spelling mistakes. A spell-corrector that only knows Indic words will "fix" them into Indic words. Language ID decides which words the Indic models should touch.
-- **Why save the trained models?** Training on 1,117 examples for 100 epochs takes about 15 minutes on a CPU. Each saved model stores a fingerprint (hash) of its training data and settings, so editing the lexicon automatically triggers retraining. The saved models can never silently go stale.
+- **Why save the trained models?** Training on 1,117 examples for 25 epochs takes about 3 minutes on a CPU. The saved model stores a fingerprint (hash) of its training data and settings, so editing the lexicon or the noise engine automatically triggers retraining. The saved model can never silently go stale.
 
 - **Be honest about the rule-engine score:** the same people wrote the dictionaries and the dataset, so rules-only accuracy is probably optimistic. The ML model's 71–75% is the fairer estimate for text unlike our examples. The hybrid takes the best of both.
 

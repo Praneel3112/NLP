@@ -8,11 +8,11 @@ class CorrectionServicePhaseTwoTests(unittest.TestCase):
     def setUp(self) -> None:
         self.service = CorrectionService()
         self.service._rnn = Mock()
-        self.service._transformer = Mock()
-        self.service._transformer.correct_sentence.side_effect = (
-            lambda sentence: sentence
+        self.service._ranker = Mock()
+        self.service._ranker.correct_tokens.side_effect = (
+            lambda tokens, correctable=None, extra=None: list(tokens)
         )
-        self.service._transformer.last_trace = {"decision": "test"}
+        self.service._ranker.last_trace = {"decision": "test"}
 
     def test_preserves_words_already_in_lexicon(self) -> None:
         self.service._rnn.predict_word.return_value = "wrong"
@@ -87,7 +87,7 @@ class CorrectionServicePhaseTwoTests(unittest.TestCase):
         result = self.service.correct("namsate how are you aap")
 
         self.assertEqual(result["phase2"], "namaste how are you aap")
-        self.assertEqual(result["phase3"], "namsate how are you aap")  # mock Transformer echoes its input
+        self.assertEqual(result["phase3"], "namsate how are you aap")  # mock ranker echoes its input
         self.assertIn("English", result["phase1_steps"][1]["decision"])
 
     def test_lexicon_words_that_look_english_stay_indic(self) -> None:
