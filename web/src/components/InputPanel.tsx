@@ -12,15 +12,6 @@ import {
 } from "@/components/ui/texture-card"
 import { MAX_TEXT_LENGTH } from "@/lib/api"
 
-const EXAMPLES = [
-  "namast aap kaise ho 😂",
-  "bht gussa aa raha h 😡😡",
-  "not happy yaar 😔",
-  "omg plz tell me ur coming 😲",
-  "tumba bhaya aagtide 😨",
-  "love u maa ❤️",
-]
-
 interface InputPanelProps {
   text: string
   onTextChange: (value: string) => void
@@ -70,22 +61,6 @@ export function InputPanel({ text, onTextChange, onAnalyze, canAnalyze, isLoadin
             {inputError}
           </p>
         ) : null}
-
-        <div>
-          <p className="mb-2 text-xs font-medium text-neutral-400">Try an example</p>
-          <div className="flex flex-wrap gap-2">
-            {EXAMPLES.map((example) => (
-              <button
-                key={example}
-                type="button"
-                onClick={() => onTextChange(example)}
-                className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-neutral-300 transition hover:border-cyan-400/40 hover:bg-cyan-400/10 hover:text-white"
-              >
-                {example}
-              </button>
-            ))}
-          </div>
-        </div>
       </TextureCardContent>
       <TextureSeparator />
       <TextureCardFooter className="flex-col items-stretch gap-3 sm:flex-row sm:items-center">

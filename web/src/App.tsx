@@ -70,7 +70,7 @@ export default function App() {
 
   const analyze = useCallback(async () => {
     if (!text.trim()) {
-      setInputError("Type a message or pick an example first.")
+      setInputError("Type a message first.")
       return
     }
     if (text.length > MAX_TEXT_LENGTH) {

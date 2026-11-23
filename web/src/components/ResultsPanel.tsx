@@ -44,7 +44,7 @@ export function ResultsPanel({ result, isLoading, error }: ResultsPanelProps) {
         <MessageSquareText className="size-8 text-neutral-600" />
         <p className="font-medium text-neutral-300">Your results will appear here</p>
         <p className="max-w-xs text-sm text-neutral-500">
-          Pick an example or type a message, then press Analyse.
+          Type a message, then press Analyse.
         </p>
       </div>
     )
