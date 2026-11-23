@@ -57,3 +57,73 @@ def score(suite: EvaluationSuite, pairs: list[tuple[str, str]], outputs: dict[st
     for phase in PHASES:
         rows[phase] = suite.evaluate_all(references, outputs[phase], inputs=noisy)
     return rows
+
+
+# ---------------------------------------------------------------------------- unseen words
+
+UNSEEN_PATH = Path(__file__).resolve().parents[2] / "data" / "unseen_sentences.csv"
+MIXED_SEED_BASE = 9000
+
+
+def load_unseen_sentences(split: str | None = None, path: Path = UNSEEN_PATH) -> list[str]:
+    """Sentences made of valid words (names, nouns, English) that the lexicon has never seen."""
+    return load_eval_sentences(split, path)
+
+
+def preservation(service: Any, sentences: list[str]) -> dict[str, Any]:
+    """How often clean text with unseen words comes through unchanged (it must).
+
+    Each sentence is already correct, so any change is a false correction.
+    """
+    changed_words: dict[str, list[tuple[str, str]]] = {phase: [] for phase in PHASES}
+    exact = {phase: 0 for phase in PHASES}
+    total_words = 0
+    for sentence in sentences:
+        result = service.run_phases(sentence)
+        total_words += len(sentence.split())
+        for phase in PHASES:
+            out = result[phase].split()
+            src = sentence.split()
+            if out == src:
+                exact[phase] += 1
+            else:
+                changed_words[phase].extend((a, b) for a, b in zip(src, out) if a != b)
+    return {
+        "sentences": len(sentences),
+        "words": total_words,
+        "unchanged_sentences": exact,
+        "unchanged_rate": {phase: exact[phase] / max(len(sentences), 1) for phase in PHASES},
+        "false_corrections": changed_words,
+    }
+
+
+def mixed_noise_pairs(
+    sentences: list[str], known_words: set[str], variants: set[str], variants_per_sentence: int = VARIANTS_PER_SENTENCE
+) -> list[tuple[str, str]]:
+    """(clean, noisy) pairs where typing mistakes hit only the words the lexicon knows.
+
+    Unseen words and English words stay as typed, like a user who types a name correctly but
+    slips on ordinary words. The system should fix the slips and leave everything else alone.
+    """
+    pairs = []
+    for index, sentence in enumerate(sentences):
+        for variant in range(variants_per_sentence):
+            generator = NoiseGenerator(seed=MIXED_SEED_BASE + index * variants_per_sentence + variant)
+            tokens = [
+                generator.generate_noisy_text(token) if token in known_words and token not in variants else token
+                for token in sentence.split()
+            ]
+            pairs.append((sentence, " ".join(tokens)))
+    return pairs
+
+
+VALIDATION_PATH = Path(__file__).resolve().parents[2] / "data" / "validation_sentences.csv"
+
+
+def load_validation_sentences(path: Path = VALIDATION_PATH) -> list[str]:
+    """A blind set of unseen-word sentences, written before the final policy was fixed.
+
+    Nothing in the lexicon or the thresholds was chosen by looking at it, so its results are the
+    honest estimate of how the system treats text it has never seen.
+    """
+    return load_eval_sentences(None, path)

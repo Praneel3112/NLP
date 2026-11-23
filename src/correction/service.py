@@ -11,15 +11,28 @@ import torch
 
 from src.correction.context_ranker import ContextRanker
 from src.correction.model_store import load_or_train
-from src.correction.pipeline import LEXICON
+from src.correction.pipeline import LEXICON, VARIANTS
 from src.correction.rnn_baseline import Seq2SeqRNN
-from src.detection.edit_distance import EditDistanceDetector, gru_distance_limit
+from src.detection.edit_distance import HIGH_CONFIDENCE_COST, EditDistanceDetector, gru_candidate_ok
+from src.detection.noise_distance import noise_cost
 from src.emotion.detector import EmotionDetector
 from src.lang_id.detector import LanguageIdentifier
 from src.preprocessing.slang_normalizer import SlangNormalizer
 
 TRAINING_EPOCHS = 25  # GRU training epochs (see model_store.py)
 _EDGE_PUNCTUATION = re.compile(r"^\W+|\W+$")
+_TOKEN_EDGES = re.compile(r"^(\W*)(.*?)(\W*)$", re.UNICODE)
+
+# A GRU answer is only used when it is a lexicon word that typing slips could explain. (The GRU's
+# own confidence is shown but not used as a gate: measured on held-out data it is just as high
+# for its mistakes and for unseen words as for its correct answers.)
+GRU_MAX_NOISE_COST = 2.5
+
+# Internet and chat words that the NLTK English word list lacks.
+EXTRA_ENGLISH = frozenset(
+    "bro bruh dude guys wifi whatsapp insta instagram youtube google facebook selfie email internet "
+    "online offline app link password chat group status reel reels meme memes ok okay hmm lol omg btw".split()
+)
 _LONG_REPEAT = re.compile(r"(.)\1{2,}")
 
 
@@ -41,14 +54,14 @@ class CorrectionService:
             "lexicon_size": len(LEXICON),
             "models_loaded_from_disk": None,
         }
-        self._edit_detector = EditDistanceDetector(list(LEXICON))
+        self._edit_detector = EditDistanceDetector(list(LEXICON), VARIANTS)
         self._lexicon = {word.casefold() for word in LEXICON}
         self._language_id = LanguageIdentifier()
         self._slang = SlangNormalizer()
         self._emotion = EmotionDetector()
         self._emotion_ready = False
         self._rnn: Seq2SeqRNN | None = None
-        self._ranker = ContextRanker(list(LEXICON))
+        self._ranker = ContextRanker(list(LEXICON), VARIANTS)
 
     def warm_up(self) -> None:
         """Train both models once, reporting progress and any startup failure."""
@@ -145,11 +158,13 @@ class CorrectionService:
         "doingggg" is checked as "doing".
         """
         core = _EDGE_PUNCTUATION.sub("", token).casefold()
-        if not core or core in self._lexicon or not core.isalpha():
+        if not core or core in self._lexicon or core in VARIANTS or not core.isalpha():
             return False
         variants = {core, _LONG_REPEAT.sub(r"\1\1", core), _LONG_REPEAT.sub(r"\1", core)}
         if variants & self._lexicon:
             return False
+        if variants & EXTRA_ENGLISH:
+            return True
         return any(self._language_id.is_english_word(variant) for variant in variants)
 
     def _correct_code_mixed(self, text: str) -> dict[str, Any]:
@@ -216,6 +231,45 @@ class CorrectionService:
             "timings_ms": indic["timings_ms"],
         }
 
+    @staticmethod
+    def _match_case(template: str, word: str) -> str:
+        return word[:1].upper() + word[1:] if template[:1].isupper() else word
+
+    def _phase1_word(self, core: str, index: int) -> dict[str, Any]:
+        """Phase 1 decision for one word (without punctuation).
+
+        ``kind`` tells the later phases whether they may touch the word: only "candidate"
+        and "unseen" words are open to correction; known words, valid spelling variants,
+        names, numbers and symbols are never changed.
+        """
+        lower = core.lower()
+        unchanged = {"shown": core, "guided": core, "distance": 0, "candidates": []}
+        if not core or not core.isalpha():
+            return {**unchanged, "kind": "nonword", "decision": "Not a word (number or symbol); kept as typed"}
+        if index > 0 and len(core) > 1 and core[0].isupper() and core[1:].islower():
+            return {**unchanged, "kind": "name", "decision": "Capitalised word treated as a name; kept as typed"}
+        variant = self._edit_detector.variant_of(lower)
+        if variant:
+            return {**unchanged, "kind": "variant", "candidates": [variant],
+                    "decision": f"Valid spelling variant of '{variant}'; kept as typed"}
+        if lower in self._lexicon:
+            return {**unchanged, "kind": "known", "candidates": [lower], "decision": "Known word (in the lexicon)"}
+
+        matches = self._edit_detector.plausible_corrections(lower)
+        if not matches:
+            return {**unchanged, "kind": "unseen",
+                    "decision": "Not in the lexicon and no close match; kept as typed (unseen word)"}
+        cost, distance, _, best = matches[0]
+        candidates = [entry for *_, entry in matches][:4]
+        shown = self._match_case(core, best)
+        if cost <= HIGH_CONFIDENCE_COST:
+            return {"shown": shown, "guided": shown, "distance": distance, "candidates": candidates,
+                    "kind": "known",
+                    "decision": f"High-confidence match (dropped or repeated letters, cost {cost:.1f})"}
+        return {"shown": shown, "guided": core, "distance": distance, "candidates": candidates,
+                "kind": "candidate",
+                "decision": f"Possible match (cost {cost:.1f}); Phase 2 must confirm it before it is applied"}
+
     def _correct_phases(
         self,
         text: str,
@@ -227,120 +281,95 @@ class CorrectionService:
         Phase 3 transformer can read English words around the Indic ones.
         """
         started = time.perf_counter()
-        phase1, errors = self._edit_detector.process_sentence(text)
-        errors_by_word = {item["original"]: item for item in errors}
+        tokens = text.split()
+        edges = [_TOKEN_EDGES.match(token).groups() for token in tokens]
+
+        # ---- Phase 1: lexicon lookup, edit distance, phonetic (G2P) matching ------------
+        decisions = [self._phase1_word(core, index) for index, (_, core, _) in enumerate(edges)]
         phase1_steps: list[dict[str, Any]] = []
-        guided_words: list[str] = []
-
-        for word in text.split():
-            candidate, is_error, distance = (
-                self._edit_detector.detect_and_correct_word(word)
+        phase1_tokens: list[str] = []
+        guided_tokens: list[str] = []
+        for token, (prefix, _, suffix), item in zip(tokens, edges, decisions):
+            phase1_tokens.append(f"{prefix}{item['shown']}{suffix}")
+            guided_tokens.append(f"{prefix}{item['guided']}{suffix}")
+            phase1_steps.append(
+                {
+                    "original": token,
+                    "corrected": f"{prefix}{item['shown']}{suffix}",
+                    "distance": item["distance"],
+                    "candidates": item["candidates"],
+                    "decision": item["decision"],
+                }
             )
-            if is_error and distance <= 1:
-                guided_words.append(candidate)
-                error = errors_by_word.get(word)
-                phase1_steps.append(
-                    {
-                        "original": word,
-                        "corrected": candidate,
-                        "distance": distance,
-                        "candidates": (
-                            error["candidates"] if error else [candidate]
-                        ),
-                        "decision": "High-confidence lexicon match",
-                    }
-                )
-            elif not is_error:
-                guided_words.append(word)
-                phase1_steps.append(
-                    {
-                        "original": word,
-                        "corrected": word,
-                        "distance": 0,
-                        "candidates": [word],
-                        "decision": "Already in sample lexicon",
-                    }
-                )
-            else:
-                guided_words.append(word)
-                error = errors_by_word.get(word)
-                phase1_steps.append(
-                    {
-                        "original": word,
-                        "corrected": word,
-                        "distance": distance,
-                        "candidates": error["candidates"] if error else [],
-                        "decision": "Kept unchanged; not passed as a correction",
-                    }
-                )
-
+        phase1 = " ".join(phase1_tokens)
+        phase1_guided = " ".join(guided_tokens)
         phase1_done = time.perf_counter()
-        phase1_guided = " ".join(guided_words)
-        phase2_words: list[str] = []
+
+        # ---- Phase 2: Bi-GRU with attention, trusted only when it is confident ------------
+        phase2_tokens: list[str] = []
         phase2_steps: list[dict[str, Any]] = []
-        lexicon = {word.casefold() for word in LEXICON}
-        for word in phase1_guided.split():
-            if word.casefold() in lexicon:
-                corrected = word
-                model_output = word
-                decision = "Passed through; already in sample lexicon"
+        accepted_by_gru: dict[int, str] = {}
+        for index, ((prefix, core, suffix), item) in enumerate(zip(edges, decisions)):
+            guided_core = item["guided"]
+            if item["kind"] in {"known", "variant", "name", "nonword"} or guided_core.lower() in self._lexicon:
+                corrected, model_output, confidence = guided_core, guided_core, None
+                decision = "Passed through: " + item["decision"].split(";")[0].lower()
             else:
-                model_output = self._rnn.predict_word(word)
+                model_output, confidence = self._rnn.predict_word_with_confidence(guided_core.lower())
                 model_word = model_output.casefold()
-                nearest_word, is_error, distance = (
-                    self._edit_detector.detect_and_correct_word(
-                        word,
-                        max_distance=MAX_LEXICON_DISTANCE,
-                    )
-                )
-                model_distance = (
-                    editdistance.eval(word.casefold(), model_word)
-                    if model_word in lexicon
-                    else 10**6
-                )
-
-                if model_distance <= gru_distance_limit(word):
-                    corrected = model_word
-                    decision = "Accepted GRU output within lexicon distance"
-                elif is_error and distance <= MAX_LEXICON_DISTANCE:
-                    corrected = nearest_word
-                    decision = "Used lexicon safeguard for out-of-lexicon GRU output"
+                if (
+                    model_word in self._lexicon
+                    and gru_candidate_ok(guided_core, model_word)
+                    and noise_cost(guided_core, model_word) <= GRU_MAX_NOISE_COST
+                ):
+                    corrected = self._match_case(guided_core, model_word)
+                    accepted_by_gru[index] = model_word
+                    decision = f"Confirmed by the GRU (confidence {confidence:.2f})"
                 else:
-                    corrected = word
-                    decision = "Kept input; no close lexicon correction"
-
-            phase2_words.append(corrected)
+                    corrected = guided_core
+                    decision = (
+                        f"Kept as typed: the GRU's answer ('{model_output}') is not a plausible fix, so "
+                        "this is treated as an unseen word"
+                    )
+            phase2_tokens.append(f"{prefix}{corrected}{suffix}")
             phase2_steps.append(
                 {
-                    "original": word,
+                    "original": guided_tokens[index],
                     "model_output": model_output,
-                    "corrected": corrected,
+                    "confidence": None if confidence is None else round(confidence, 3),
+                    "corrected": f"{prefix}{corrected}{suffix}",
                     "decision": decision,
                 }
             )
-
         phase2_done = time.perf_counter()
-        phase2 = " ".join(phase2_words)
+        phase2 = " ".join(phase2_tokens)
 
-        # Phase 3: rank each ambiguous word's candidates in the context of the whole sentence.
-        guided_tokens = phase1_guided.split()
+        # ---- Phase 3: rank each ambiguous word's candidates in whole-sentence context ----------
+        # A word may only be changed here if Phase 2 confirmed a correction for it.
+        open_to_change = [index in accepted_by_gru for index in range(len(tokens))]
+        extra = {index: [word] for index, word in accepted_by_gru.items()}
         if context is None:
-            tokens, correctable = guided_tokens, [True] * len(guided_tokens)
-            extra = {index: [word] for index, word in enumerate(phase2_words)}
+            ranker_tokens, correctable, ranker_extra = guided_tokens, open_to_change, extra
         else:
-            tokens, correctable, extra = [], [], {}
+            ranker_tokens, correctable, ranker_extra = [], [], {}
             indic_index = 0
             for token, is_english in zip(*context):
                 if is_english:
-                    tokens.append(token)
+                    ranker_tokens.append(token)
                     correctable.append(False)
                 else:
-                    extra[len(tokens)] = [phase2_words[indic_index]]
-                    tokens.append(guided_tokens[indic_index])
-                    correctable.append(True)
+                    if indic_index in extra:
+                        ranker_extra[len(ranker_tokens)] = extra[indic_index]
+                    ranker_tokens.append(guided_tokens[indic_index])
+                    correctable.append(open_to_change[indic_index])
                     indic_index += 1
-        ranked = self._ranker.correct_tokens(tokens, correctable, extra)
-        phase3 = " ".join(word for word, keep in zip(ranked, correctable) if keep)
+        ranked = self._ranker.correct_tokens(ranker_tokens, correctable, ranker_extra)
+        if context is None:
+            phase3_tokens = ranked
+        else:
+            is_english_flags = context[1]
+            phase3_tokens = [word for word, english in zip(ranked, is_english_flags) if not english]
+        phase3 = " ".join(phase3_tokens)
         phase3_done = time.perf_counter()
 
         return {

@@ -34,7 +34,11 @@ export function EmotionView({ emotion, input }: { emotion: EmotionResult | null;
           />
           <div className="mt-2 flex flex-wrap justify-center gap-2 sm:justify-start">
             <HaloBadge variant="secondary">
-              {emotion.method === "hybrid" ? "Rules + ML model" : "ML model only (no dictionary cues)"}
+              {emotion.uncertain
+                ? "No clear emotional cue"
+                : emotion.method === "hybrid"
+                  ? "Rules + ML model"
+                  : "ML model only (no dictionary cues)"}
             </HaloBadge>
             <HaloBadge variant={emotion.intensity === "high" ? "destructive" : "secondary"}>
               {INTENSITY_LABEL[emotion.intensity]}
@@ -42,10 +46,23 @@ export function EmotionView({ emotion, input }: { emotion: EmotionResult | null;
           </div>
         </div>
         <div className="text-center sm:text-right">
-          <p className={cn("text-4xl font-bold tabular-nums", style.text)}>
-            <RollingNumber value={Math.round(emotion.confidence * 100)} format={(n) => `${n}%`} />
-          </p>
-          <p className="text-xs text-neutral-500">confidence</p>
+          {emotion.uncertain ? (
+            <>
+              <p className="text-2xl font-semibold text-neutral-300">Not sure</p>
+              <p className="max-w-40 text-xs text-neutral-500">
+                {emotion.model_guess
+                  ? `Weak guess was ${EMOTION_STYLE[emotion.model_guess.label].label.toLowerCase()} (${percent(emotion.model_guess.confidence)})`
+                  : "no emotional cue found"}
+              </p>
+            </>
+          ) : (
+            <>
+              <p className={cn("text-4xl font-bold tabular-nums", style.text)}>
+                <RollingNumber value={Math.round(emotion.confidence * 100)} format={(n) => `${n}%`} />
+              </p>
+              <p className="text-xs text-neutral-500">confidence</p>
+            </>
+          )}
         </div>
       </div>
 

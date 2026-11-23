@@ -3,17 +3,17 @@ import type { EmotionMetrics } from "@/lib/api"
 import { percent } from "@/lib/emotions"
 import { cn } from "@/lib/utils"
 
-const STAGES = [
+const stages = (lexiconSize: number, trainingExamples: number) => [
   { step: "00", title: "Slang normalizer", text: "Expands short forms (bht → bahut, plz → please) and separates emoji." },
   {
     step: "01",
     title: "Edit distance + G2P",
-    text: "English words are skipped by language ID. Indic words are matched to a 279-word lexicon by edit distance and by sound.",
+    text: `English words are skipped by language ID. Indic words are matched to ${lexiconSize > 0 ? `a ${lexiconSize.toLocaleString()}-word` : "the"} lexicon, but only by edits a typing slip could explain, so unseen words stay as typed.`,
   },
   {
     step: "02",
     title: "Bi-GRU + attention",
-    text: "A 3-layer bidirectional GRU with Bahdanau attention, trained on 1,117 noisy-to-clean pairs, fixes words letter by letter.",
+    text: `A 3-layer bidirectional GRU with Bahdanau attention, trained on ${trainingExamples > 0 ? `${trainingExamples.toLocaleString()} ` : ""}noisy-to-clean pairs, confirms the rules' less certain fixes.`,
   },
   {
     step: "03",
@@ -28,7 +28,15 @@ const COMPARISON = [
   { key: "hybrid", label: "Hybrid (ours)", note: "50% rules + 50% model" },
 ] as const
 
-export function HowItWorks({ metrics }: { metrics: EmotionMetrics | null }) {
+export function HowItWorks({
+  metrics,
+  lexiconSize,
+  trainingExamples,
+}: {
+  metrics: EmotionMetrics | null
+  lexiconSize: number
+  trainingExamples: number
+}) {
   return (
     <section id="how-it-works" aria-labelledby="how-title" className="mx-auto max-w-6xl px-4 py-20">
       <p className="font-mono text-xs tracking-[0.2em] text-cyan-300/80 uppercase">How it works</p>
@@ -41,7 +49,7 @@ export function HowItWorks({ metrics }: { metrics: EmotionMetrics | null }) {
       </p>
 
       <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {STAGES.map((stage) => (
+        {stages(lexiconSize, trainingExamples).map((stage) => (
           <article key={stage.step} className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
             <span className="font-mono text-xs text-cyan-300/80">PHASE {stage.step}</span>
             <h3 className="mt-2 font-semibold text-neutral-100">{stage.title}</h3>

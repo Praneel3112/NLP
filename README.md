@@ -58,29 +58,50 @@ run `npm run dev` inside `web/`; Vite proxies `/api` to the Python server.
 The emotion classifier (word + character TF-IDF with Logistic Regression,
 trained on `data/emotion_dataset.csv`) trains first, in about two seconds.
 
-The correction lexicon is `data/lexicon.csv`: 279 common Romanized Hindi,
+The correction lexicon is `data/lexicon.csv`: 1,496 common Romanized Hindi,
 Kannada, Tamil and Bengali words with their language and meaning (the first 13
-are the original CIE3 sample words).
+are the original CIE3 sample words). `data/variants.csv` lists accepted alternative
+spellings (accha / achha / acha); doubled long vowels (paani / pani, saree / sari)
+are also treated as spellings of the same word. Variants are never "corrected".
+
+**Safety for unseen words.** A small lexicon cannot contain every name or noun, so
+the pipeline is built not to damage valid words it does not know:
+
+- A word is only changed when the difference looks like a *typing slip* (dropped or
+  repeated letter, neighbouring key, swapped letters; `src/detection/noise_distance.py`).
+  A different word that happens to be one edit away is left alone.
+- The clearest slips are applied directly; other candidates need the GRU to confirm
+  them. Numbers, symbols, English words, listed variants and capitalised words in the
+  middle of a sentence (names) are never touched.
+- Words never become targets if they are shorter than three letters.
+
+Phases:
 
 - **Phase 1** matches words to the lexicon by edit distance (at most 2) and by sound
-  (a grapheme-to-phoneme code), which also rescues heavily distorted words.
+  (a grapheme-to-phoneme code), which also rescues heavily stretched words.
 - **Phase 2** is a 3-layer bidirectional GRU encoder with a one-layer GRU decoder and
   Bahdanau attention (64-d embeddings, 256-d hidden states). It is trained for 25
-  epochs, batch size 64, Adam with learning rate 0.001, on 1,117 noisy-to-clean pairs
-  generated from the lexicon, with a fixed seed. Training takes about three minutes
+  epochs, batch size 64, Adam with learning rate 0.001, on 5,985 noisy-to-clean pairs
+  generated from the lexicon, with a fixed seed. Training takes about seven minutes
   on one CPU thread, so the model is saved in `models/` and reloaded in seconds; its
   checkpoint stores a fingerprint of the training data and settings, so editing the
-  lexicon or the noise engine retrains it automatically.
+  lexicon or the noise engine retrains it automatically (add words to
+  `data/lexicon.csv` and restart the server).
 - **Phase 3** uses the pretrained `xlm-roberta-base` model (not fine-tuned). For each
-  ambiguous word it scores the candidate spellings from Phases 1 and 2 by how well
-  they fit the rest of the sentence. The first start downloads the model (about 1 GB,
-  cached afterwards in your Hugging Face cache); if it cannot be loaded the app still
-  runs and Phase 3 falls back to the Phase 1/2 suggestions.
+  word with several plausible candidates it scores them by how well they fit the rest
+  of the sentence, together with how plausible the typing slip is. The first start
+  downloads the model (about 1 GB, cached afterwards in your Hugging Face cache); if it
+  cannot be loaded the app still runs and Phase 3 falls back to the Phase 1/2 suggestions.
 
 `python main.py` prints the metrics for all phases (CER, WER, BLEU, exact match,
-precision, recall, F1, semantic similarity, latency) on the demo sentences and on a
-held-out benchmark (`data/eval_sentences.csv`). `REPORT_UPDATES.md` lists the numbers
-and the report statements that depend on them.
+precision, recall, F1, semantic similarity, latency) on the demo sentences and on
+held-out sets: a noise benchmark (`data/eval_sentences.csv`), unseen-word sentences
+(`data/unseen_sentences.csv`, `data/validation_sentences.csv`) and mixed sentences.
+`REPORT_UPDATES.md` lists the numbers and the report statements that depend on them;
+`DEMO.md` is a verified demo script and test checklist.
+
+Page links: `http://localhost:8000/?text=bht%20gussa%20aa%20raha%20h&tab=emotion`
+pre-fills the box, analyses it and opens the Emotion, Slang or Correction tab.
 
 The models run on CPU and need PyTorch, which is installed as a dependency of
 `sentence-transformers` in `requirements.txt`. Startup may take a while. If

@@ -167,9 +167,11 @@ Run the tests with `python -m unittest discover -s tests -v`.
 - ✅ Connected to `service.py`, `server.py` and `main.py` (new Step 5)
 - ✅ New React + Cult UI frontend in `web/`
 - ✅ **Code-mixed correction:** the language identifier now sends English words around Phases 1–3. Before, "how are you" became "ho amar ho".
-- ✅ **Bigger lexicon:** 13 → 279 common words (Hindi, Kannada, Tamil, Bengali) in `data/lexicon.csv`, each with its language and meaning. The GRU trains once (25 epochs, about 3 minutes) on 1,117 examples and is saved in `models/`, so later starts take seconds.
+- ✅ **Bigger lexicon:** 13 → 1,496 common words (Hindi, Kannada, Tamil, Bengali) in `data/lexicon.csv`, each with its language and meaning. The GRU trains once (25 epochs, about 7 minutes) on 5,985 examples and is saved in `models/`, so later starts take seconds.
 - ✅ **Report alignment (branch `report-aligned`):** bidirectional GRU with the report's sizes and settings, phonetic G2P matching in Phase 1, XLM-RoBERTa context ranking in Phase 3, precision/recall/F1, wider noise engine, measured latency. Numbers are in `REPORT_UPDATES.md`.
-- ✅ 52 tests passing
+- ✅ **Unseen-word safety:** names, nouns and new words are kept as typed (noise-aware edit cost, tiered confirmation, variants, name protection). Measured on separate unseen-word sets: 39/40 blind sentences unchanged.
+- ✅ **Emotion robustness:** rules run on slang-expanded text, "not sure" state for weak guesses; 88% → 95% on 42 fresh sentences.
+- ✅ 73 tests passing
 
 **Results on 84 unseen test sentences:**
 
@@ -184,7 +186,7 @@ Run the tests with `python -m unittest discover -s tests -v`.
 ## 9. Viva talking points 🎤
 
 - **Why split by language before correcting?** Code-mixed text has English words that aren't spelling mistakes. A spell-corrector that only knows Indic words will "fix" them into Indic words. Language ID decides which words the Indic models should touch.
-- **Why save the trained models?** Training on 1,117 examples for 25 epochs takes about 3 minutes on a CPU. The saved model stores a fingerprint (hash) of its training data and settings, so editing the lexicon or the noise engine automatically triggers retraining. The saved model can never silently go stale.
+- **Why save the trained models?** Training on 5,985 examples for 25 epochs takes about 7 minutes on a CPU. The saved model stores a fingerprint (hash) of its training data and settings, so editing the lexicon or the noise engine automatically triggers retraining. The saved model can never silently go stale.
 
 - **Be honest about the rule-engine score:** the same people wrote the dictionaries and the dataset, so rules-only accuracy is probably optimistic. The ML model's 71–75% is the fairer estimate for text unlike our examples. The hybrid takes the best of both.
 

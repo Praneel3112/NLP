@@ -38,7 +38,14 @@ function PhaseCard({
 }
 
 export function CorrectionView({ result }: { result: AnalysisResult }) {
-  const usedSafeguard = result.phase2_steps.some((step) => step.decision.includes("safeguard"))
+  const confirmed = result.phase2_steps.filter((step) => step.decision.startsWith("Confirmed")).length
+  const unseen = result.phase2_steps.filter((step) => step.decision.includes("unseen")).length
+  const phase2Note = [
+    confirmed ? `The GRU confirmed ${confirmed} correction${confirmed === 1 ? "" : "s"} the rules were unsure about.` : "",
+    unseen ? `${unseen} word${unseen === 1 ? "" : "s"} not in the lexicon (names, new nouns) kept exactly as typed.` : "",
+  ]
+    .filter(Boolean)
+    .join(" ")
 
   return (
     <div className="space-y-3 p-1 text-left">
@@ -52,11 +59,7 @@ export function CorrectionView({ result }: { result: AnalysisResult }) {
         phase="Phase 2"
         title="3-layer Bi-GRU + attention"
         text={result.phase2}
-        note={
-          usedSafeguard
-            ? "Lexicon safeguard applied where the GRU output was not trustworthy."
-            : "Output passed the sample-lexicon checks."
-        }
+        note={phase2Note || "Nothing needed the GRU: every word was known or already fixed by Phase 1."}
       />
       <PhaseCard
         phase="Phase 3"

@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 
 from src.emotion.detector import EmotionDetector
 from src.emotion.rule_scorer import RuleEmotionScorer
@@ -62,6 +63,45 @@ class EmotionDetectorTests(unittest.TestCase):
             self.metrics["comparison"]["hybrid"]["accuracy"],
             self.metrics["comparison"]["model_only"]["accuracy"],
         )
+
+
+class EmotionRobustnessTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.detector = EmotionDetector()
+        cls.detector.train()
+
+    def test_a_weak_model_only_guess_becomes_neutral_not_sure(self) -> None:
+        weak = {"joy": 0.05, "sadness": 0.05, "anger": 0.4, "fear": 0.1, "surprise": 0.1, "love": 0.1, "neutral": 0.2}
+        with patch.object(self.detector.classifier, "predict_proba", return_value=weak):
+            result = self.detector.detect("tum kahan ho abhi")
+        self.assertEqual(result["label"], "neutral")
+        self.assertTrue(result["uncertain"])
+        self.assertEqual(result["model_guess"]["label"], "anger")
+
+    def test_a_confident_model_only_guess_is_kept(self) -> None:
+        strong = {"joy": 0.05, "sadness": 0.05, "anger": 0.7, "fear": 0.05, "surprise": 0.05, "love": 0.05, "neutral": 0.05}
+        with patch.object(self.detector.classifier, "predict_proba", return_value=strong):
+            result = self.detector.detect("tum kahan ho abhi")
+        self.assertEqual((result["label"], result["uncertain"]), ("anger", False))
+
+    def test_rules_see_slang_expanded_text(self) -> None:
+        self.assertEqual(self.detector.detect("hi u r so gr8 yaar")["label"], "joy")
+
+    def test_everyday_phrases_with_spelling_variants(self) -> None:
+        self.assertEqual(self.detector.detect("mera dost bahut acha hai")["label"], "joy")
+        self.assertEqual(self.detector.detect("mujhe samosa pasand hai")["label"], "joy")
+        self.assertEqual(self.detector.detect("pyaari si ladki")["label"], "love")
+        self.assertEqual(self.detector.detect("mera dil toot gaya")["label"], "sadness")
+
+    def test_accuracy_on_fresh_sentences(self) -> None:
+        import csv
+        from pathlib import Path as _Path
+
+        path = _Path(__file__).resolve().parents[1] / "data" / "emotion_validation.csv"
+        rows = list(csv.DictReader(path.open(encoding="utf-8", newline="")))
+        right = sum(self.detector.detect(row["text"])["label"] == row["label"] for row in rows)
+        self.assertGreaterEqual(right / len(rows), 0.85)
 
 
 if __name__ == "__main__":

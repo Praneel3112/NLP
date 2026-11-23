@@ -2,7 +2,7 @@
 
 import warnings
 
-from src.correction.pipeline import LEXICON
+from src.correction.pipeline import LEXICON, VARIANTS
 from src.correction.service import TRAINING_EPOCHS, CorrectionService
 from src.emotion.detector import EmotionDetector
 from src.evaluation import benchmark
@@ -71,7 +71,7 @@ def main():
     print("\nSTEP 3 - CORRECTION PHASES")
     print(RULE)
     service = CorrectionService()
-    print(f"  Lexicon: {len(LEXICON)} Romanized Hindi/Kannada/Tamil/Bengali words (data/lexicon.csv).")
+    print(f"  Lexicon: {len(LEXICON)} Romanized Hindi/Kannada/Tamil/Bengali words (data/lexicon.csv) + {len(VARIANTS)} accepted spelling variants.")
     service.load_correction_models()
     status = service.get_status()
     source = "loaded from models/" if status["models_loaded_from_disk"] else "trained now and saved to models/"
@@ -141,6 +141,41 @@ def main():
         f"Phase 1 {latency['phase1']:.1f} ms | Phase 2 {latency['phase2']:.1f} ms | "
         f"Phase 3 {latency['phase3']:.1f} ms | total {latency['total']:.1f} ms per sentence"
     )
+    # ---- unseen words: valid words the lexicon has never seen must not be "corrected" -------------
+    unseen_test = benchmark.load_unseen_sentences("test")
+    kept = benchmark.preservation(service, unseen_test)
+    print(
+        f"\n  C. Unseen-word safety: {kept['sentences']} correct sentences ({kept['words']} words) containing names, "
+        "nouns, festivals and English words\n     that the lexicon has never seen (data/unseen_sentences.csv, 'test' split). "
+        "Every change is a false correction."
+    )
+    for phase in benchmark.PHASES:
+        count = kept["unchanged_sentences"][phase]
+        wrong = kept["false_corrections"][phase]
+        shown = ", ".join(f"{a} -> {b}" for a, b in wrong) or "none"
+        print(f"     {labels[phase]:<34}: {count}/{kept['sentences']} sentences unchanged | false corrections: {shown}")
+
+    blind = benchmark.load_validation_sentences()
+    blind_result = benchmark.preservation(service, blind)
+    print(
+        f"\n  C2. Blind validation: {blind_result['sentences']} more correct sentences ({blind_result['words']} words) "
+        "with new unseen words (data/validation_sentences.csv).\n     Written before the final policy was fixed and never "
+        "used to tune anything: the honest estimate."
+    )
+    for phase in benchmark.PHASES:
+        count = blind_result["unchanged_sentences"][phase]
+        wrong = blind_result["false_corrections"][phase]
+        shown = ", ".join(f"{a} -> {b}" for a, b in wrong) or "none"
+        print(f"     {labels[phase]:<34}: {count}/{blind_result['sentences']} sentences unchanged | false corrections: {shown}")
+
+    mixed_pairs = benchmark.mixed_noise_pairs(unseen_test, set(LEXICON), set(VARIANTS))
+    mixed_run = benchmark.run_pipeline(service, mixed_pairs)
+    mixed_scores = benchmark.score(suite, mixed_pairs, mixed_run["outputs"])
+    print_metric_table(
+        f"D. Typing mistakes on known words only, unseen words typed correctly ({len(mixed_pairs)} sentences)",
+        {labels[key]: value for key, value in mixed_scores.items()},
+    )
+
     print(
         "\n  Metric guide: lower CER/WER is better; higher BLEU, exact match, precision, recall, "
         "F1 and semantic similarity are better."

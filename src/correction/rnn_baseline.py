@@ -512,6 +512,14 @@ class Seq2SeqRNN(Seq2Seq):
 
         return inference_correct(self, word, char2idx, idx2char)
 
+    def predict_word_with_confidence(self, word: str) -> tuple[str, float]:
+        """Like :meth:`predict_word` but also return the decoder's mean per-character confidence."""
+        if not word:
+            return "", 1.0
+        if self.encoder is None or self.decoder is None:
+            return self.predict_word(word), 1.0
+        return inference_correct(self, word, self.char2idx, self.idx2char, return_confidence=True)
+
     def correct_sentence(
         self,
         sentence: str,
@@ -544,10 +552,16 @@ def inference_correct(
     word: str,
     char2idx: dict[str, int],
     idx2char: dict[int, str],
-) -> str:
-    """Greedily correct a word using a trained character-level seq2seq model."""
+    return_confidence: bool = False,
+) -> "str | tuple[str, float]":
+    """Greedily correct a word using a trained character-level seq2seq model.
+
+    With ``return_confidence`` the result is ``(word, confidence)`` where confidence is the
+    mean probability the decoder gave to each character it chose (and to stopping): close to
+    1.0 when the model is sure, much lower on words it has never seen the like of.
+    """
     if not word:
-        return ""
+        return ("", 1.0) if return_confidence else ""
 
     normalized_char2idx = {
         str(token).casefold(): int(index) for token, index in char2idx.items()
@@ -589,6 +603,7 @@ def inference_correct(
             encoder_outputs, hidden = model.encoder(src)
             input_token = torch.tensor([sos_idx], dtype=torch.long, device=device)
             output_chars: list[str] = []
+            step_probabilities: list[float] = []
             for _ in range(max_length):
                 logits, hidden, _ = model.decoder(
                     input_token,
@@ -598,6 +613,7 @@ def inference_correct(
                 )
                 next_index = logits.argmax(dim=1)
                 output_index = int(next_index.item())
+                step_probabilities.append(float(torch.softmax(logits, dim=1)[0, output_index]))
                 if output_index == eos_idx:
                     break
                 if output_index in {sos_idx, pad_idx, unk_idx}:
@@ -609,4 +625,8 @@ def inference_correct(
     finally:
         model.train(was_training)
 
-    return "".join(output_chars)
+    corrected = "".join(output_chars)
+    if return_confidence:
+        confidence = sum(step_probabilities) / len(step_probabilities) if step_probabilities else 0.0
+        return corrected, confidence
+    return corrected

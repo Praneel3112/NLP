@@ -17,6 +17,7 @@ import {
 function useBackendStatus() {
   const [state, setState] = useState<ConnectionState>("checking")
   const [stage, setStage] = useState("")
+  const [sizes, setSizes] = useState({ lexiconSize: 0, trainingExamples: 0 })
 
   useEffect(() => {
     let timer: number | undefined
@@ -28,6 +29,7 @@ function useBackendStatus() {
         if (cancelled) return
         setState(status.status)
         setStage(status.stage)
+        setSizes({ lexiconSize: status.lexicon_size, trainingExamples: status.training_examples })
         if (status.status === "loading") timer = window.setTimeout(poll, 2500)
       } catch {
         if (cancelled) return
@@ -42,13 +44,15 @@ function useBackendStatus() {
     }
   }, [])
 
-  return { state, stage }
+  return { state, stage, sizes }
 }
 
 export default function App() {
-  const { state, stage } = useBackendStatus()
+  const { state, stage, sizes } = useBackendStatus()
   // A link like /?text=bht%20gussa%20😡 pre-fills the box and runs once the models are ready.
   const [sharedText] = useState(() => new URLSearchParams(window.location.search).get("text") ?? "")
+  // ?tab=emotion|slang|correction opens that result tab first.
+  const [initialTab] = useState(() => ({ emotion: 0, slang: 1, correction: 2 })[new URLSearchParams(window.location.search).get("tab") ?? ""] ?? 0)
   const [text, setText] = useState(sharedText)
   const [autoRunPending, setAutoRunPending] = useState(Boolean(sharedText.trim()))
   const [inputError, setInputError] = useState<string | null>(null)
@@ -110,10 +114,10 @@ export default function App() {
           isLoading={isLoading}
           inputError={inputError}
         />
-        <ResultsPanel result={result} isLoading={isLoading} error={error} />
+        <ResultsPanel result={result} isLoading={isLoading} error={error} initialTab={initialTab} />
       </main>
 
-      <HowItWorks metrics={metrics} />
+      <HowItWorks metrics={metrics} lexiconSize={sizes.lexiconSize} trainingExamples={sizes.trainingExamples} />
 
       <footer className="border-t border-white/10 px-4 py-8 text-center text-xs text-neutral-500">
         Translit Lab · Romanized Indic error correction and emoji/slang emotion detection · Results are experimental and

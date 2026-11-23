@@ -8,7 +8,7 @@ pieces in context (left-to-right within the word), combined with how close the
 candidate is to what the user typed:
 
     score(c) = logP_xlmr(c | context) / pieces(c)**KAPPA
-               + BETA * similarity(c, typed word)
+               - BETA * noise_cost(typed word, c)
 
 Candidates are always lexicon words: Phase 1's matches (within two edits, or a
 phonetic match) plus the GRU's answer when it is a lexicon word that is not too far
@@ -22,7 +22,8 @@ from typing import Any
 import torch
 
 from src.detection import levenshtein as editdistance
-from src.detection.edit_distance import EditDistanceDetector, gru_distance_limit
+from src.detection.edit_distance import EditDistanceDetector, gru_candidate_ok
+from src.detection.noise_distance import noise_cost
 
 MODEL_NAME = "xlm-roberta-base"
 MAX_CANDIDATES = 4
@@ -30,14 +31,9 @@ MAX_DISTANCE = 2
 
 # Weights of the scoring formula above (tuned on the "tune" split of data/eval_sentences.csv).
 KAPPA = 1.0
-BETA = 32.0  # 16-64 all work about equally; with this much weight on closeness the transformer mostly breaks ties
+BETA = 10.0  # one unit of typing-slip cost is worth 10 log-probability points: the transformer breaks near-ties
 
 _EDGES = re.compile(r"^(\W*)(.*?)(\W*)$", re.UNICODE)
-
-
-def _similarity(first: str, second: str) -> float:
-    longest = max(len(first), len(second)) or 1
-    return 1.0 - editdistance.eval(first, second) / longest
 
 
 class ContextRanker:
@@ -46,6 +42,7 @@ class ContextRanker:
     def __init__(
         self,
         lexicon: list[str],
+        variants: dict[str, str] | None = None,
         model_name: str = MODEL_NAME,
         device: str = "cpu",
         kappa: float = KAPPA,
@@ -53,7 +50,7 @@ class ContextRanker:
     ) -> None:
         self.lexicon = [word.lower() for word in lexicon]
         self._lexicon_set = set(self.lexicon)
-        self.detector = EditDistanceDetector(self.lexicon)
+        self.detector = EditDistanceDetector(self.lexicon, variants)
         self.model_name = model_name
         self.device = torch.device(device)
         self.kappa, self.beta = kappa, beta
@@ -141,7 +138,7 @@ class ContextRanker:
 
     def _score(self, typed: str, candidate: str, logprob: float, pieces: int) -> float:
         context_score = logprob / (max(pieces, 1) ** self.kappa) if self.available else 0.0
-        return context_score + self.beta * _similarity(candidate, typed)
+        return context_score - self.beta * noise_cost(typed, candidate)
 
     # ------------------------------------------------------------------ public API
 
@@ -155,8 +152,7 @@ class ContextRanker:
         suggestions = list(self.detector.get_candidates(typed_lower, MAX_DISTANCE, MAX_CANDIDATES))
         for candidate in extra or []:
             candidate = candidate.lower()
-            close_enough = editdistance.eval(typed_lower, candidate) <= gru_distance_limit(typed_lower)
-            if candidate not in suggestions and candidate in self._lexicon_set and close_enough:
+            if candidate not in suggestions and candidate in self._lexicon_set and gru_candidate_ok(typed_lower, candidate):
                 suggestions.append(candidate)
         return suggestions
 
@@ -174,7 +170,7 @@ class ContextRanker:
 
         candidate_lists: dict[int, list[str]] = {}
         for index, core in enumerate(cores):
-            if not correctable[index] or not core or core.lower() in self._lexicon_set:
+            if not correctable[index] or not core or self.detector.is_known(core):
                 continue
             options = self.candidates_for(core, extra.get(index))
             if options:
@@ -228,8 +224,12 @@ class ContextRanker:
             "input": " ".join(tokens),
             "model_output": output,
             "decision": (
-                f"XLM-RoBERTa chose between candidates for {len(rankings)} ambiguous word(s); "
-                f"{changed} word(s) changed"
+                (
+                    f"XLM-RoBERTa chose between candidates for {len(rankings)} ambiguous word(s); "
+                    f"{changed} word(s) changed"
+                    if rankings
+                    else "No ambiguous words, so XLM-RoBERTa had nothing to decide"
+                )
                 if self.available
                 else "XLM-RoBERTa unavailable; used edit-distance, phonetic and GRU suggestions only"
             ),

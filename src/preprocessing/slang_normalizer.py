@@ -14,7 +14,7 @@ from typing import Any
 
 import emoji
 
-from src.correction.pipeline import LEXICON
+from src.correction.pipeline import LEXICON, VARIANTS
 
 
 # Chat shorthand (mostly English) and Romanized Indic short forms.
@@ -66,7 +66,7 @@ SLANG_MAP: dict[str, tuple[str, str]] = {
     **{key: (value, "indic") for key, value in INDIC_SLANG.items()},
 }
 # Identity entries carry no information and must never rewrite a correction-lexicon word.
-_PROTECTED = {word.casefold() for word in LEXICON}
+_PROTECTED = {word.casefold() for word in LEXICON} | set(VARIANTS)
 SLANG_MAP = {
     key: value
     for key, value in SLANG_MAP.items()
@@ -94,7 +94,8 @@ def _lookup(core: str) -> tuple[str, str] | None:
         return SLANG_MAP[key]
     # "plzzz" -> "plz" / "pls", "bhooot" -> "bhot"
     for squashed in (_LONG_REPEAT.sub(r"\1\1", key), _LONG_REPEAT.sub(r"\1", key)):
-        if squashed != key and squashed not in _PROTECTED and squashed in SLANG_MAP:
+        # Only squash towards slang of 2+ letters: "nnn" is not a stretched "n" (= "and").
+        if len(squashed) >= 2 and squashed != key and squashed not in _PROTECTED and squashed in SLANG_MAP:
             return SLANG_MAP[squashed]
     return None
 

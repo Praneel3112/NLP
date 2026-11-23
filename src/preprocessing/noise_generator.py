@@ -23,28 +23,40 @@ class NoiseGenerator:
         self._random = random.Random(seed)
 
     def drop_vowels(self, text: str, p: float = 0.25) -> str:
-        """Drop non-initial vowels independently with probability ``p``."""
+        """Drop non-initial vowels with probability ``p`` in words of more than two characters."""
         self._validate_probability(p)
-        result: list[str] = []
-        at_word_start = True
 
-        for char in text:
-            if char.isalnum():
-                if (
-                    not at_word_start
-                    and char.lower() in self._VOWELS
-                    and self._random.random() < p
-                ):
+        def drop(match: re.Match[str]) -> str:
+            word = match.group()
+            if len(word) <= 2:
+                return word
+            kept = [word[0]]
+            for char in word[1:]:
+                if char.lower() in self._VOWELS and self._random.random() < p:
                     continue
-                at_word_start = False
-            else:
-                at_word_start = True
-            result.append(char)
+                kept.append(char)
+            return "".join(kept)
 
-        return "".join(result)
+        return re.sub(r"[^\W_]+", drop, text)
 
-    def repeat_characters(self, text: str, p: float = 0.15) -> str:
-        """Repeat alphabetic characters one to three times with probability ``p``."""
+    def repeat_final_letter(self, text: str, p: float = 0.15) -> str:
+        """Duplicate a word's last letter one to three times with probability ``p`` (paper, eq. 1)."""
+        self._validate_probability(p)
+
+        def repeat(match: re.Match[str]) -> str:
+            word = match.group()
+            if self._random.random() < p:
+                return word + word[-1] * self._random.randint(1, 3)
+            return word
+
+        return re.sub(r"[A-Za-z]+", repeat, text)
+
+    def repeat_characters(self, text: str, p: float = 0.05) -> str:
+        """Repeat letters inside words one to three times with probability ``p`` per letter.
+
+        An extension of the paper's final-letter repetition: chat text also stretches
+        vowels in the middle of words ("yaaar", "naaam").
+        """
         self._validate_probability(p)
         result: list[str] = []
         for char in text:
@@ -53,10 +65,13 @@ class NoiseGenerator:
                 result.append(char * self._random.randint(1, 3))
         return "".join(result)
 
-    def apply_phonetic_substitutions(self, text: str) -> str:
-        """Replace common phonetic pairs while preserving initial capitalization."""
+    def apply_phonetic_substitutions(self, text: str, p: float = 0.30) -> str:
+        """Replace each common phonetic pair with probability ``p``, keeping initial capitals."""
+        self._validate_probability(p)
 
         def substitute(match: re.Match[str]) -> str:
+            if self._random.random() >= p:
+                return match.group()
             pair = match.group().lower()
             replacement = self._PHONETIC_MAP[pair]
             return replacement.capitalize() if match.group()[0].isupper() else replacement
@@ -107,9 +122,10 @@ class NoiseGenerator:
         return re.sub(r"[A-Za-z]+", mistype, text)
 
     def generate_noisy_text(self, text: str, typo_p: float = 0.25) -> str:
-        """Apply phonetic substitutions, vowel dropping, repetition and typos."""
+        """Apply phonetic substitutions, vowel dropping, letter repetition and typing mistakes."""
         text = self.apply_phonetic_substitutions(text)
         text = self.drop_vowels(text)
+        text = self.repeat_final_letter(text)
         text = self.repeat_characters(text)
         return self.apply_typos(text, typo_p)
 

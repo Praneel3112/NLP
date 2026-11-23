@@ -20,6 +20,8 @@ interface OgImageSectionProps {
   /** Inner tab/bubble radius — should be outer radius minus container padding (~3px) */
   roundedInner?: string
   onChange?: () => void
+  /** Tab shown first (defaults to the first one) */
+  defaultTab?: number
 }
 
 function DirectionAwareTabs({
@@ -28,8 +30,9 @@ function DirectionAwareTabs({
   rounded,
   roundedInner,
   onChange,
+  defaultTab = 0,
 }: OgImageSectionProps) {
-  const [activeTab, setActiveTab] = useState(0)
+  const [activeTab, setActiveTab] = useState(defaultTab)
   const [direction, setDirection] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
   const [ref, bounds] = useMeasure()

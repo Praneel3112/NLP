@@ -85,12 +85,28 @@ WORD_EMOTIONS: dict[str, tuple[str, float]] = {
     **_group("surprise", 1.5, "obak shotti"),                                     # Bengali
     # love
     **_group("love", 2.0, "love loving loved adore lovely sweetheart darling crush romantic"),
-    **_group("love", 2.0, "pyaar pyar mohabbat ishq dil"),                       # Hindi
+    **_group("love", 2.0, "pyaar pyar mohabbat ishq"),                           # Hindi
+    **_group("love", 1.5, "pyara pyari pyaara pyaari dilbar"),                    # Hindi: lovely / dear
+    **_group("love", 0.8, "dil"),
     **_group("love", 2.0, "preethi ishta"),                                       # Kannada
     **_group("love", 2.0, "kadhal anbu"),                                         # Tamil
     **_group("love", 2.0, "bhalobasha bhalobashi"),                               # Bengali
 }
 
+
+# Everyday words added after testing on unseen sentences.
+WORD_EMOTIONS.update(
+    {
+        **_group("joy", 1.5, "acha achha acchha mazedaar majedaar lajawab behtareen shukriya thanks thank dhanyavaad dhanyavad "
+                             "badhai congratulations congrats mubarak perfect"),
+        **_group("joy", 1.0, "pasand"),
+        **_group("sadness", 2.0, "toot toota tootna"),
+        **_group("sadness", 1.0, "yaad"),
+        **_group("sadness", 1.5, "kaash fail failed"),
+        **_group("anger", 1.5, "nautanki ganda gandi fed tang"),
+        **_group("surprise", 1.5, "waah wah oho yakeen"),
+    }
+)
 
 # Words that flip the emotion of a nearby cue ("not happy", "khush nahi").
 NEGATORS = frozenset(

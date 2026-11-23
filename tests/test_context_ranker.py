@@ -28,9 +28,9 @@ class RankerWithoutTransformerTests(unittest.TestCase):
         self.assertTrue(all(word in LEXICON for word in candidates))
 
     def test_gru_may_suggest_farther_words_than_phase_one(self) -> None:
-        # "mmmmina" is 4 edits from "meena": beyond Phase 1's limit, but allowed for the GRU.
-        self.assertIn("meena", self.ranker.candidates_for("mmmmina", extra=["meena"]))
-        self.assertNotIn("namaste", self.ranker.candidates_for("mmmmina", extra=["namaste"]))
+        # "hhhesaaru" is 3 edits from "hesaru": beyond Phase 1's limit, but allowed for the GRU.
+        self.assertIn("hesaru", self.ranker.candidates_for("hhhesaaru", extra=["hesaru"]))
+        self.assertNotIn("namaste", self.ranker.candidates_for("hhhesaaru", extra=["namaste"]))
 
     def test_english_and_flagged_words_are_left_untouched(self) -> None:
         tokens = ["namast", "good", "morning", "aap"]
@@ -60,13 +60,15 @@ class RankerWithXlmRobertaTests(unittest.TestCase):
 
     def test_scores_candidates_in_context_and_records_the_ranking(self) -> None:
         output = self.ranker.correct_sentence("namast aap kaise ho")
-        self.assertEqual(output, "namaste aap kaise ho")
+        self.assertEqual(output, "namaste aap kaise ho")  # only one plausible candidate: no ranking needed
+
+        self.ranker.correct_sentence("naaann hesaru ravi")  # "naan", "naanu"... are both plausible
         trace = self.ranker.last_trace
         self.assertEqual(trace["model"], "xlm-roberta-base")
         self.assertIn("XLM-RoBERTa", trace["decision"])
         ranking = trace["rankings"][0]
-        self.assertEqual(ranking["chosen"], "namaste")
         self.assertGreater(len(ranking["candidates"]), 1)
+        self.assertIn(ranking["chosen"], [item["word"] for item in ranking["candidates"]])
         self.assertTrue(all(isinstance(item["score"], float) for item in ranking["candidates"]))
 
     def test_never_leaves_the_candidate_list(self) -> None:

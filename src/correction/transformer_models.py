@@ -1,4 +1,8 @@
-"""Trainable character-level Transformer for transliteration correction."""
+"""NOTE: not used by the current pipeline. Phase 3 is now the pretrained XLM-RoBERTa ranker
+(src/correction/context_ranker.py). This from-scratch character Transformer is kept from the
+CIE3 version as a baseline.
+
+Trainable character-level Transformer for transliteration correction."""
 
 import random
 

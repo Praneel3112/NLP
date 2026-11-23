@@ -17,9 +17,10 @@ interface ResultsPanelProps {
   result: AnalysisResult | null
   isLoading: boolean
   error: string | null
+  initialTab?: number
 }
 
-export function ResultsPanel({ result, isLoading, error }: ResultsPanelProps) {
+export function ResultsPanel({ result, isLoading, error, initialTab = 0 }: ResultsPanelProps) {
   let body
   if (isLoading) {
     body = (
@@ -51,6 +52,7 @@ export function ResultsPanel({ result, isLoading, error }: ResultsPanelProps) {
   } else {
     body = (
       <DirectionAwareTabs
+        defaultTab={initialTab}
         className="mb-4 bg-neutral-800"
         tabs={[
           { id: 0, label: "Emotion", content: <EmotionView emotion={result.emotion} input={result.input} /> },

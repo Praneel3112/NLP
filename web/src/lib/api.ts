@@ -9,6 +9,7 @@ export interface BackendStatus {
   training_examples: number
   phase2_loss: number | null
   phase3_model: string | null
+  lexicon_size: number
   emotion_accuracy: number | null
   emotion_macro_f1: number | null
 }
@@ -49,6 +50,8 @@ export interface EmotionResult {
   emoji: string
   confidence: number
   method: "hybrid" | "model_only"
+  uncertain: boolean
+  model_guess: { label: Emotion; confidence: number } | null
   rule_weight: number
   scores: Record<Emotion, number>
   rule_scores: Record<Emotion, number>
@@ -70,6 +73,7 @@ export interface Phase1Step {
 export interface Phase2Step {
   original: string
   model_output: string
+  confidence: number | null
   corrected: string
   decision: string
 }
